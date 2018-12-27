@@ -17,6 +17,7 @@ PYBIND11_MODULE(baloo, m) {
 
     py::class_<OrderBookDelta>(m, "OrderBookDelta")
         .def(py::init<>())
+        .def(py::init<TimeType&, double, double, OrderDirection>(), py::arg("timestamp"), py::arg("price"), py::arg("quantity"), py::arg("direction"))
         .def_property("timestamp", &OrderBookDelta::getTimestamp, &OrderBookDelta::setTimestamp)
         .def_property("price", &OrderBookDelta::getPrice, &OrderBookDelta::setPrice)
         .def_property("quantity", &OrderBookDelta::getQuantity, &OrderBookDelta::setQuantity)

@@ -16,6 +16,15 @@ public:
     void setQuantity(double quantity);
     OrderDirection getDirection();
     void setDirection(OrderDirection direction);
+
+    OrderBookDelta() {}
+
+    OrderBookDelta(TimeType& timestamp, double price, double quantity, OrderDirection direction) {
+        this->timestamp = timestamp;
+        this->price = price;
+        this->quantity = quantity;
+        this->direction = direction;
+    }
 private:
     TimeType timestamp;
     double price;
