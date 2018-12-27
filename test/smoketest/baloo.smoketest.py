@@ -101,7 +101,7 @@ class BalooModuleTests(unittest.TestCase):
 
     def test_binning(self):
         deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 12)]
-        bins = [0.0, 5.0, 10.0]
+        bins = [2.0, 5.0, 10.0]
         snapshot1 = OrderBookSnapshot()
         snapshot1.apply(deltas)
         bins_output = snapshot1.calculate_bid_ask_spreads(bins)

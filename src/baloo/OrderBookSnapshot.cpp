@@ -36,16 +36,20 @@ OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointIn
 std::vector<double>& OrderBookSnapshot::calculateBidAskSpreads(std::vector<double> &bins) {
     std::vector<double>& binsValues = *new std::vector<double>(bins.size(), 0);
     
-    for (auto elem : asks) { 
-        auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
-        int position = whichBin - bins.begin() - 1;
-        binsValues[position] = binsValues[position] - elem.second;
+    for (auto elem : asks) {
+        if (elem.first >= binsValues[0] && elem.first <= binsValues[binsValues.size() - 1]) {
+            auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
+            int position = whichBin - bins.begin() - 1;
+            binsValues[position] = binsValues[position] - elem.second;
+        }
     }
 
     for (auto elem : bids) { 
-        auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
-        int position = whichBin - bins.begin() - 1;
-        binsValues[position] = binsValues[position] + elem.second;
+        if (elem.first >= binsValues[0] && elem.first <= binsValues[binsValues.size() - 1]) {
+            auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
+            int position = whichBin - bins.begin() + 1;
+            binsValues[position] = binsValues[position] - elem.second;
+        }
     }
     
     return binsValues;
