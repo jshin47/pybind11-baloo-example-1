@@ -69,7 +69,7 @@ class BalooModuleTests(unittest.TestCase):
         self.assertEqual(len(snapshot2.asks), 1)
         self.assertEqual(len(snapshot2.bids), 0)
 
-    def test_apply_seems_quick(self):
+    def test_apply_seems_quick_many_unique_keys(self):
         time_start = time.time()
 
         deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
@@ -81,8 +81,23 @@ class BalooModuleTests(unittest.TestCase):
 
         time_snapshot_applied = time.time()
 
-        print(f"deltas allocated: {time_deltas_allocated - time_start}")
-        print(f"deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+        print(f"30000 unique deltas allocated: {time_deltas_allocated - time_start}")
+        print(f"30000 unique deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+
+    def test_apply_seems_quick_few_unique_keys(self):
+        time_start = time.time()
+
+        deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i % 100, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
+        
+        time_deltas_allocated = time.time()
+
+        snapshot1 = OrderBookSnapshot()
+        snapshot1.apply(deltas)
+
+        time_snapshot_applied = time.time()
+
+        print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
+        print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
 
 if __name__ == '__main__':
     unittest.main()
