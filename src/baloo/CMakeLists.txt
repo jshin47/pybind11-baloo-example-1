@@ -1,0 +1,9 @@
+pybind11_add_module(
+    baloo
+    baloo.cpp
+    OrderDirection.h
+    OrderBookDelta.h
+    OrderBookDelta.cpp
+    OrderBookSnapshot.h
+    OrderBookSnapshot.cpp
+)
