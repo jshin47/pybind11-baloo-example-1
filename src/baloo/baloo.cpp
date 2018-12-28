@@ -7,6 +7,7 @@
 #include "definitions.h"
 #include "OrderDirection.h"
 #include "OrderBookDelta.h"
+#include "ImmutableOrderBookSnapshot.h"
 #include "OrderBookSnapshot.h"
 
 PYBIND11_MODULE(baloo, m) {
@@ -22,6 +23,11 @@ PYBIND11_MODULE(baloo, m) {
         .def_property("price", &OrderBookDelta::getPrice, &OrderBookDelta::setPrice)
         .def_property("quantity", &OrderBookDelta::getQuantity, &OrderBookDelta::setQuantity)
         .def_property("direction", &OrderBookDelta::getDirection, &OrderBookDelta::setDirection)
+    ;
+
+    py::class_<ImmutableOrderBookSnapshot>(m, "ImmutableOrderBookSnapshot")
+        .def_property_readonly("asks", &ImmutableOrderBookSnapshot::getAsks)
+        .def_property_readonly("bids", &ImmutableOrderBookSnapshot::getBids)
     ;
 
     py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot")

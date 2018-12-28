@@ -5,24 +5,35 @@
 #include <map>
 #include <chrono>
 #include <string>
+#include <memory>
 
 #include "definitions.h"
+#include "AbsOrderBookSnapshot.h"
+#include "ImmutableOrderBookSnapshot.h"
 #include "OrderBookDelta.h"
 
-class OrderBookSnapshot {
+class OrderBookSnapshot : public AbsOrderBookSnapshot {
 public:
-    void apply(OrderBookDelta &delta);
-    void apply(std::vector<OrderBookDelta> &deltas);
+    void apply(OrderBookDelta& delta);
+    void apply(std::vector<OrderBookDelta>& deltas);
     OrderBookSnapshot& getSnapshotAtPointInTime(TimeType& pointInTime);
-    std::vector<double>& calculateBidAskDifferentialBins(std::vector<double> &bins);
 
     std::map<TimeType, OrderBookDelta> getDeltas();
-    std::map<double, double> getAsks();
-    std::map<double, double> getBids();
+    std::map<double, double>& getAsks();
+    std::map<double, double>& getBids();
+
+    OrderBookSnapshot() { }
+
+    OrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids) {
+        this->initialSnapshot = *new ImmutableOrderBookSnapshot(asks, bids);
+        this->asks = asks;
+        this->bids = bids;
+    }
 private:
     std::map<TimeType, OrderBookDelta> deltas;
     std::map<double, double> asks;
     std::map<double, double> bids;
+    ImmutableOrderBookSnapshot initialSnapshot = *new ImmutableOrderBookSnapshot();
 };
 
 #endif

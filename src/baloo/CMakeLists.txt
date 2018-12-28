@@ -6,4 +6,8 @@ pybind11_add_module(
     OrderBookDelta.cpp
     OrderBookSnapshot.h
     OrderBookSnapshot.cpp
+    AbsOrderBookSnapshot.h
+    AbsOrderBookSnapshot.cpp
+    ImmutableOrderBookSnapshot.h
+    ImmutableOrderBookSnapshot.cpp
 )

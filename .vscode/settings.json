@@ -33,6 +33,7 @@
         "string_view": "cpp",
         "valarray": "cpp",
         "__string": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "memory": "cpp"
     }
 }
