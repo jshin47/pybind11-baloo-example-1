@@ -14,12 +14,12 @@ public:
     void setPrice(double price);
     double getQuantity();
     void setQuantity(double quantity);
-    OrderDirection getDirection();
-    void setDirection(OrderDirection direction);
+    OrderDirection::OrderDirectionEnum getDirection();
+    void setDirection(OrderDirection::OrderDirectionEnum direction);
 
     OrderBookDelta() {}
 
-    OrderBookDelta(TimeType& timestamp, double price, double quantity, OrderDirection direction) {
+    OrderBookDelta(TimeType& timestamp, double price, double quantity, OrderDirection::OrderDirectionEnum direction) {
         this->timestamp = timestamp;
         this->price = price;
         this->quantity = quantity;
@@ -29,7 +29,7 @@ private:
     TimeType timestamp;
     double price;
     double quantity;
-    OrderDirection direction;
+    OrderDirection::OrderDirectionEnum direction;
 };
 
 #endif

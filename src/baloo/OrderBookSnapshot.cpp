@@ -9,7 +9,7 @@
 
 void OrderBookSnapshot::apply(OrderBookDelta &delta) {
     deltas.emplace(delta.getTimestamp(), delta);
-    auto & whichMap = (delta.getDirection() == Ask) ? asks : bids;
+    auto & whichMap = (delta.getDirection() == OrderDirection::Ask) ? asks : bids;
     if (delta.getQuantity() > 0)
         whichMap.emplace(delta.getPrice(), delta.getQuantity());
     else
@@ -33,24 +33,25 @@ OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointIn
     return snapshot;
 }
 
-std::vector<double>& OrderBookSnapshot::calculateBidAskSpreads(std::vector<double> &bins) {
-    std::vector<double>& binsValues = *new std::vector<double>(bins.size(), 0);
-    
-    for (auto elem : asks) {
-        if (elem.first >= binsValues[0] && elem.first <= binsValues[binsValues.size() - 1]) {
+void applyBinsValues(std::vector<double> &bins, std::vector<double> &binsValues, std::map<double, double> &priceMap, OrderDirection::OrderDirectionEnum direction) {
+    int multiplier = (direction == OrderDirection::Ask) ? -1 : 1;
+    for (auto elem : priceMap) {
+        bool biggerThanOrEqualToSmallestBinElement = elem.first >= bins[0];
+        bool smallerThanBiggestBinElement = elem.first < bins[bins.size() - 1];
+        if (biggerThanOrEqualToSmallestBinElement && smallerThanBiggestBinElement) {
             auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
             int position = whichBin - bins.begin() - 1;
-            binsValues[position] = binsValues[position] - elem.second;
-        }
+            binsValues[position] = binsValues[position] + multiplier * elem.second;
+        } else if (!smallerThanBiggestBinElement)
+            break;
     }
+}
 
-    for (auto elem : bids) { 
-        if (elem.first >= binsValues[0] && elem.first <= binsValues[binsValues.size() - 1]) {
-            auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
-            int position = whichBin - bins.begin() + 1;
-            binsValues[position] = binsValues[position] - elem.second;
-        }
-    }
+std::vector<double>& OrderBookSnapshot::calculateBidAskSpreads(std::vector<double> &bins) {
+    std::vector<double>& binsValues = *new std::vector<double>(bins.size() - 1, 0);
+
+    applyBinsValues(bins, binsValues, asks, OrderDirection::Ask);
+    applyBinsValues(bins, binsValues, bids, OrderDirection::Bid);
     
     return binsValues;
 }

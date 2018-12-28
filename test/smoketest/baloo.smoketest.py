@@ -81,8 +81,8 @@ class BalooModuleTests(unittest.TestCase):
 
         time_snapshot_applied = time.time()
 
-        print(f"30000 unique deltas allocated: {time_deltas_allocated - time_start}")
-        print(f"30000 unique deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+        # print(f"30000 unique deltas allocated: {time_deltas_allocated - time_start}")
+        # print(f"30000 unique deltas applied: {time_snapshot_applied - time_deltas_allocated}")
 
     def test_apply_seems_quick_few_unique_keys(self):
         time_start = time.time()
@@ -96,19 +96,18 @@ class BalooModuleTests(unittest.TestCase):
 
         time_snapshot_applied = time.time()
 
-        print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
-        print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+        # print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
+        # print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
 
     def test_binning(self):
         deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 12)]
-        bins = [2.0, 5.0, 10.0]
+        bins = [1.0, 5.0, 10.0]
         snapshot1 = OrderBookSnapshot()
         snapshot1.apply(deltas)
         bins_output = snapshot1.calculate_bid_ask_spreads(bins)
-        print(bins_output)
-        self.assertEqual(bins_output[0], -2)    # 1 - 2 + 3 - 4     = -2
-        self.assertEqual(bins_output[1], 7)   # 5 - 6 + 7 - 8 + 9 = 7
-        self.assertEqual(bins_output[2], 1)   # -10 + 11           = -1
+        self.assertEqual(len(bins_output), len(bins) - 1)
+        self.assertEqual(bins_output[0], -2)    # 1 - 2 + 3 - 4       = -2
+        self.assertEqual(bins_output[1], 7)     # 5 - 6 + 7 - 8 + 9   = 7
 
 if __name__ == '__main__':
     unittest.main()

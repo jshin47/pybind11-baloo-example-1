@@ -24,10 +24,10 @@ void OrderBookDelta::setQuantity(double quantity) {
     this->quantity = quantity;
 }
 
-OrderDirection OrderBookDelta::getDirection() {
+OrderDirection::OrderDirectionEnum OrderBookDelta::getDirection() {
     return direction;
 }
 
-void OrderBookDelta::setDirection(OrderDirection direction) {
+void OrderBookDelta::setDirection(OrderDirection::OrderDirectionEnum direction) {
     this->direction = direction;
 }

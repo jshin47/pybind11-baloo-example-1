@@ -3,9 +3,11 @@
 #ifndef __BALOO_ORDER_DIRECTION_H__
 #define __BALOO_ORDER_DIRECTION_H__
 
-enum OrderDirection {
-    Ask,
-    Bid,
-};
+namespace OrderDirection {
+    enum OrderDirectionEnum {
+        Ask,
+        Bid,
+    };
+}
 
 #endif
