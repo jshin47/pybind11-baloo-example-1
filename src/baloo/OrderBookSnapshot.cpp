@@ -33,7 +33,7 @@ OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointIn
     return snapshot;
 }
 
-std::map<TimeType, OrderBookDelta> OrderBookSnapshot::getDeltas() {
+std::map<TimeType, OrderBookDelta>& OrderBookSnapshot::getDeltas() {
     return deltas;
 }
 
