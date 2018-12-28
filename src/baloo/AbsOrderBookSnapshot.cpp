@@ -22,8 +22,8 @@ void AbsOrderBookSnapshot::calculateDifferentialsForBin(std::vector<double>& bin
     }
 }
 
-std::vector<double> AbsOrderBookSnapshot::calculateBidAskDifferentialBins(std::vector<double>& bins) {
-    std::vector<double> binsValues(bins.size() - 1, 0);
+std::vector<double>& AbsOrderBookSnapshot::calculateBidAskDifferentialBins(std::vector<double>& bins) {
+    std::vector<double>& binsValues = *new std::vector<double>(bins.size() - 1, 0);
 
     calculateDifferentialsForBin(bins, binsValues, getAsks(), OrderDirection::Ask);
     calculateDifferentialsForBin(bins, binsValues, getBids(), OrderDirection::Bid);
