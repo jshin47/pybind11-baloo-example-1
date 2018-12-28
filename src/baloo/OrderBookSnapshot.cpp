@@ -23,7 +23,7 @@ void OrderBookSnapshot::apply(std::vector<OrderBookDelta> &deltas) {
 }
 
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointInTime) {
-    OrderBookSnapshot& snapshot = *new OrderBookSnapshot();
+    OrderBookSnapshot& snapshot = *new OrderBookSnapshot(initialSnapshot);
     std::map<TimeType,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);
 
     for(std::map<TimeType,OrderBookDelta>::iterator it = deltas.begin(); it != deltas.upper_bound(pointInTime); ++it) {

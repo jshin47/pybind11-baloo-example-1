@@ -29,6 +29,9 @@ public:
         this->asks = asks;
         this->bids = bids;
     }
+
+    OrderBookSnapshot(AbsOrderBookSnapshot& initialSnapshot) : OrderBookSnapshot(initialSnapshot.getAsks(), initialSnapshot.getBids()) {
+    }
 private:
     std::map<TimeType, OrderBookDelta> deltas;
     std::map<double, double> asks;
