@@ -22,6 +22,13 @@ void OrderBookSnapshot::apply(std::vector<OrderBookDelta> &deltas) {
     }
 }
 
+void OrderBookSnapshot::become(std::map<double, double>& asks, std::map<double, double>& bids) {
+    this->initialSnapshot = *new ImmutableOrderBookSnapshot(asks, bids);
+    this->asks = asks;
+    this->bids = bids;
+    this->deltas.clear();
+}
+
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointInTime) {
     OrderBookSnapshot& snapshot = *new OrderBookSnapshot(initialSnapshot);
     std::map<TimeType,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);

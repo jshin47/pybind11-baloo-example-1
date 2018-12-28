@@ -16,6 +16,7 @@ class OrderBookSnapshot : public AbsOrderBookSnapshot {
 public:
     void apply(OrderBookDelta& delta);
     void apply(std::vector<OrderBookDelta>& deltas);
+    void become(std::map<double, double>& asks, std::map<double, double>& bids);
     OrderBookSnapshot& getSnapshotAtPointInTime(TimeType& pointInTime);
 
     std::map<TimeType, OrderBookDelta>& getDeltas();

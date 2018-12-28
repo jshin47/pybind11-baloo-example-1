@@ -32,8 +32,10 @@ PYBIND11_MODULE(baloo, m) {
 
     py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot")
         .def(py::init<>())
+        .def(py::init<std::map<double, double>&, std::map<double, double>&>())
         .def("apply", (void (OrderBookSnapshot::*)(OrderBookDelta &)) &OrderBookSnapshot::apply, "Applies a single order book delta")
         .def("apply", (void (OrderBookSnapshot::*)(std::vector<OrderBookDelta> &)) &OrderBookSnapshot::apply, "Applies a list of order book deltas")
+        .def("become", (void (OrderBookSnapshot::*)(std::map<double, double>&, std::map<double, double>&)) &OrderBookSnapshot::become, "Rewrites snapshot with new asks and bids")
         .def("get_snapshot_at_point_in_time", &OrderBookSnapshot::getSnapshotAtPointInTime, py::return_value_policy::take_ownership, "Gets a new snapshot at a point in time")
         .def("calculate_bid_ask_differential_bins", &OrderBookSnapshot::calculateBidAskDifferentialBins, py::return_value_policy::take_ownership, "Calculates the bid-ask spread by bins provided by")
         .def_property_readonly("asks", &OrderBookSnapshot::getAsks)

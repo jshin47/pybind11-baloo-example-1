@@ -1,5 +1,7 @@
 #include "AbsOrderBookSnapshot.h"
 
+#include <algorithm>
+
 namespace AbsOrderBookSnapshot_Private {
 
 

@@ -7,6 +7,7 @@ RUN apt-get -y update && apt-get install -y
 # Install the Clang compiler
 RUN apt-get -y install clang cmake aptitude 
 RUN apt-get -y install python3.6 python3-pip python3-setuptools
+RUN apt-get -y install curl libcurl4-openssl-dev
 
 COPY . /usr/src/baloo
 WORKDIR /usr/src/baloo
