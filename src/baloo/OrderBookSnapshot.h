@@ -14,7 +14,7 @@ public:
     void apply(OrderBookDelta &delta);
     void apply(std::vector<OrderBookDelta> &deltas);
     OrderBookSnapshot& getSnapshotAtPointInTime(TimeType& pointInTime);
-    std::vector<double>& calculateBidAskSpreads(std::vector<double> &bins);
+    std::vector<double>& calculateBidAskDifferentialBins(std::vector<double> &bins);
 
     std::map<TimeType, OrderBookDelta> getDeltas();
     std::map<double, double> getAsks();

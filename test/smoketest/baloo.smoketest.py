@@ -104,7 +104,7 @@ class BalooModuleTests(unittest.TestCase):
         bins = [1.0, 5.0, 10.0]
         snapshot1 = OrderBookSnapshot()
         snapshot1.apply(deltas)
-        bins_output = snapshot1.calculate_bid_ask_spreads(bins)
+        bins_output = snapshot1.calculate_bid_ask_differential_bins(bins)
         self.assertEqual(len(bins_output), len(bins) - 1)
         self.assertEqual(bins_output[0], -2)    # 1 - 2 + 3 - 4       = -2
         self.assertEqual(bins_output[1], 7)     # 5 - 6 + 7 - 8 + 9   = 7

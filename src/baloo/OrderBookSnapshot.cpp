@@ -47,7 +47,7 @@ void applyBinsValues(std::vector<double> &bins, std::vector<double> &binsValues,
     }
 }
 
-std::vector<double>& OrderBookSnapshot::calculateBidAskSpreads(std::vector<double> &bins) {
+std::vector<double>& OrderBookSnapshot::calculateBidAskDifferentialBins(std::vector<double> &bins) {
     std::vector<double>& binsValues = *new std::vector<double>(bins.size() - 1, 0);
 
     applyBinsValues(bins, binsValues, asks, OrderDirection::Ask);
