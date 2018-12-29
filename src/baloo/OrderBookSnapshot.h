@@ -17,9 +17,9 @@ public:
     void apply(OrderBookDelta& delta);
     void apply(std::vector<OrderBookDelta>& deltas);
     void become(std::map<double, double>& asks, std::map<double, double>& bids);
-    OrderBookSnapshot& getSnapshotAtPointInTime(TimeType& pointInTime);
+    OrderBookSnapshot& getSnapshotAtPointInTime(double pointInTime);
 
-    std::map<TimeType, OrderBookDelta>& getDeltas();
+    std::map<double, OrderBookDelta>& getDeltas();
     std::map<double, double>& getAsks();
     std::map<double, double>& getBids();
 
@@ -33,7 +33,7 @@ public:
 
     OrderBookSnapshot(AbsOrderBookSnapshot& initialSnapshot) : OrderBookSnapshot(initialSnapshot.getAsks(), initialSnapshot.getBids()) {}
 private:
-    std::map<TimeType, OrderBookDelta> deltas;
+    std::map<double, OrderBookDelta> deltas;
     std::map<double, double> asks;
     std::map<double, double> bids;
     ImmutableOrderBookSnapshot initialSnapshot = *new ImmutableOrderBookSnapshot();

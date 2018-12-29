@@ -16,7 +16,7 @@ class BalooModuleTests(unittest.TestCase):
 
     def test_orderbook_delta_retains_values(self):
         delta1 = OrderBookDelta()
-        timestamp = datetime.datetime.now()
+        timestamp = 1
         delta1.timestamp = timestamp
         self.assertEqual(delta1.timestamp, timestamp)
         delta1.price = 10.1
@@ -29,12 +29,12 @@ class BalooModuleTests(unittest.TestCase):
     def test_orderbook_snapshot_applies_single(self):
         snapshot1 = OrderBookSnapshot()
         delta1 = OrderBookDelta()
-        delta1.timestamp = datetime.datetime.now()
+        delta1.timestamp = 1
         delta1.quantity = 1
         delta1.direction = OrderDirection.Ask
         snapshot1.apply(delta1)
         delta2 = OrderBookDelta()
-        delta2.timestamp = datetime.datetime.now()
+        delta2.timestamp = 1
         delta2.quantity = 1
         delta2.direction = OrderDirection.Bid
         snapshot1.apply(delta2)
@@ -44,11 +44,11 @@ class BalooModuleTests(unittest.TestCase):
     def test_orderbook_snapshot_applies_list(self):
         snapshot1 = OrderBookSnapshot()
         delta1 = OrderBookDelta()
-        delta1.timestamp = datetime.datetime.now()
+        delta1.timestamp = 1
         delta1.quantity = 1
         delta1.direction = OrderDirection.Ask
         delta2 = OrderBookDelta()
-        delta2.timestamp = datetime.datetime.now()
+        delta2.timestamp = 1
         delta2.quantity = 1
         delta2.direction = OrderDirection.Bid
         snapshot1.apply([delta1, delta2])
@@ -58,11 +58,11 @@ class BalooModuleTests(unittest.TestCase):
     def test_get_snapshot_at_point_in_time(self):
         snapshot1 = OrderBookSnapshot()
         delta1 = OrderBookDelta()
-        delta1.timestamp = datetime.datetime.now()
+        delta1.timestamp = 1
         delta1.quantity = 1
         delta1.direction = OrderDirection.Ask
         delta2 = OrderBookDelta()
-        delta2.timestamp = datetime.datetime.now()
+        delta2.timestamp = 1
         delta2.quantity = 1
         delta2.direction = OrderDirection.Bid
         snapshot1.apply([delta1, delta2])
@@ -73,7 +73,7 @@ class BalooModuleTests(unittest.TestCase):
     def test_apply_seems_quick_many_unique_keys(self):
         time_start = time.time()
 
-        deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
+        deltas = [OrderBookDelta(timestamp = (float)(i), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
         
         time_deltas_allocated = time.time()
 
@@ -88,7 +88,7 @@ class BalooModuleTests(unittest.TestCase):
     def test_apply_seems_quick_few_unique_keys(self):
         time_start = time.time()
 
-        deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i % 100, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
+        deltas = [OrderBookDelta(timestamp = (float)(i), price = i % 100, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 30000)]
         
         time_deltas_allocated = time.time()
 
@@ -130,8 +130,8 @@ class BalooModuleTests(unittest.TestCase):
         for mode in modes:
             for how_many in sizes:
                 snapshot1 = OrderBookSnapshot()
-                deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
-                init_deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                deltas = [OrderBookDelta(timestamp = (float)(i), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                init_deltas = [OrderBookDelta(timestamp = (float)(i), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
                 snapshot1.apply(init_deltas)
                 time_initialized = datetime.datetime.now()
                 for i in range(n):

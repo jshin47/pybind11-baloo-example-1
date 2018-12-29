@@ -8,8 +8,8 @@
 
 class OrderBookDelta {
 public:
-    TimeType& getTimestamp();
-    void setTimestamp(TimeType& timestamp);
+    double getTimestamp();
+    void setTimestamp(double timestamp);
     double getPrice();
     void setPrice(double price);
     double getQuantity();
@@ -19,14 +19,14 @@ public:
 
     OrderBookDelta() {}
 
-    OrderBookDelta(TimeType& timestamp, double price, double quantity, OrderDirection::OrderDirectionEnum direction) {
+    OrderBookDelta(double timestamp, double price, double quantity, OrderDirection::OrderDirectionEnum direction) {
         this->timestamp = timestamp;
         this->price = price;
         this->quantity = quantity;
         this->direction = direction;
     }
 private:
-    TimeType timestamp;
+    double timestamp;
     double price;
     double quantity;
     OrderDirection::OrderDirectionEnum direction;

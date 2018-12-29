@@ -29,18 +29,18 @@ void OrderBookSnapshot::become(std::map<double, double>& asks, std::map<double, 
     this->deltas.clear();
 }
 
-OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(TimeType& pointInTime) {
+OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
     OrderBookSnapshot& snapshot = *new OrderBookSnapshot(initialSnapshot);
-    std::map<TimeType,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);
+    std::map<double,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);
 
-    for(std::map<TimeType,OrderBookDelta>::iterator it = deltas.begin(); it != deltas.upper_bound(pointInTime); ++it) {
+    for(std::map<double,OrderBookDelta>::iterator it = deltas.begin(); it != deltas.upper_bound(pointInTime); ++it) {
         snapshot.apply(it->second);
     }
 
     return snapshot;
 }
 
-std::map<TimeType, OrderBookDelta>& OrderBookSnapshot::getDeltas() {
+std::map<double, OrderBookDelta>& OrderBookSnapshot::getDeltas() {
     return deltas;
 }
 

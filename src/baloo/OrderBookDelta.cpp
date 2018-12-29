@@ -1,10 +1,10 @@
 #include "OrderBookDelta.h"
 
-TimeType& OrderBookDelta::getTimestamp() {
+double OrderBookDelta::getTimestamp() {
     return timestamp;
 }
 
-void OrderBookDelta::setTimestamp(TimeType& timestamp) {
+void OrderBookDelta::setTimestamp(double timestamp) {
     this->timestamp = timestamp;
 }
 
