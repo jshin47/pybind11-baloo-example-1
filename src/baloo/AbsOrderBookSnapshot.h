@@ -11,12 +11,13 @@
 
 class AbsOrderBookSnapshot {
 public:
-    std::vector<double>& calculateBidAskDifferentialBins(std::vector<double>& bins);
+    std::vector<double>& calculateBidAskDifferentialBins(std::vector<double>& bins, unsigned int mode = 1);
 
     virtual std::map<double, double>& getAsks() = 0;
     virtual std::map<double, double>& getBids() = 0;
 protected:
     void calculateDifferentialsForBin(std::vector<double>& bins, std::vector<double>& binsValues, std::map<double, double>& priceMap, OrderDirection::OrderDirectionEnum direction);
+    std::vector<double> binsValues;
 };
 
 #endif

@@ -2,6 +2,7 @@ import unittest
 
 import datetime
 import time
+import numpy as np
 
 from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot
 
@@ -99,15 +100,48 @@ class BalooModuleTests(unittest.TestCase):
         # print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
         # print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
 
-    def test_binning(self):
-        deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, 12)]
-        bins = [1.0, 5.0, 10.0]
-        snapshot1 = OrderBookSnapshot()
-        snapshot1.apply(deltas)
-        bins_output = snapshot1.calculate_bid_ask_differential_bins(bins)
-        self.assertEqual(len(bins_output), len(bins) - 1)
-        self.assertEqual(bins_output[0], -2)    # 1 - 2 + 3 - 4       = -2
-        self.assertEqual(bins_output[1], 7)     # 5 - 6 + 7 - 8 + 9   = 7
+    # def test_binning_performance(self):
+    #     return
+    #     factors = [1, 2, 3]
+    #     modes = [1]
+    #     sizes = [100, 150, 250]
+    #     for factor in factors:
+    #         for mode in modes:
+    #             for how_many in sizes:
+    #                 snapshot1 = OrderBookSnapshot()
+    #                 deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many)]
+    #                 for index in range(1, 10):
+    #                     new_deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i % 10, quantity = i / 2 if (i % 2 == 0) else i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, (int)(how_many / 2)]
+    #                     bins = range(1, (int)( how_many / factor), 5)
+    #                     snapshot1.apply(deltas)
+    #                     time_applied = datetime.datetime.now()
+    #                     bins_output = snapshot1.calculate_bid_ask_differential_bins(bins, mode)
+    #                     time_binned = datetime.datetime.now()
+    #                     print(f"Mode {mode} - It took {(time_binned - time_applied).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins with 1/{factor} of them relevant")
+
+                    #print(bins_output)
+
+    def test_bin(self):
+        n=100
+        x = np.zeros((n,100))
+        factors = [1, 2, 3]
+        modes = [1]
+        sizes = [100, 150, 250]
+        for mode in modes:
+            for how_many in sizes:
+                snapshot1 = OrderBookSnapshot()
+                deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                init_deltas = [OrderBookDelta(timestamp = datetime.datetime.now(), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                snapshot1.apply(init_deltas)
+                time_initialized = datetime.datetime.now()
+                for i in range(n):
+                    bins = list(range(101))
+                    snapshot1.apply(deltas[i*how_many:(i+1)*how_many])
+                    bins_output = snapshot1.calculate_bid_ask_differential_bins(bins, mode)
+                    x[i] = bins_output
+                time_binned = datetime.datetime.now()
+                print(f"Mode {mode} - It took {(time_binned - time_initialized).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins over {n} snapshots")
+                
 
 if __name__ == '__main__':
     unittest.main()
