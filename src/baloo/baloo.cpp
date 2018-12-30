@@ -31,11 +31,14 @@ PYBIND11_MODULE(baloo, m) {
     ;
 
     py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot")
-        .def(py::init<>())
-        .def(py::init<std::map<double, double>&, std::map<double, double>&>())
+        .def(py::init<bool>(), py::arg("saveMessages") = true)
+        .def(py::init<std::map<double, double>&, std::map<double, double>&, bool>(), py::arg("asks"), py::arg("bids"), py::arg("saveMessages") = true)
         .def("apply", (void (OrderBookSnapshot::*)(OrderBookDelta &)) &OrderBookSnapshot::apply, "Applies a single order book delta")
         .def("apply", (void (OrderBookSnapshot::*)(std::vector<OrderBookDelta> &)) &OrderBookSnapshot::apply, "Applies a list of order book deltas")
-        .def("become", (void (OrderBookSnapshot::*)(std::map<double, double>&, std::map<double, double>&)) &OrderBookSnapshot::become, "Rewrites snapshot with new asks and bids")
+        .def("apply", (void (OrderBookSnapshot::*)(double, double, double, OrderDirection::OrderDirectionEnum)) &OrderBookSnapshot::apply, "Applies a single order book delta by values")
+        .def("apply", (void (OrderBookSnapshot::*)(std::vector<std::tuple<double, double, double, OrderDirection::OrderDirectionEnum>>&)) &OrderBookSnapshot::apply, "Applies a list of order book delta tuples by values")
+        .def("apply", (void (OrderBookSnapshot::*)(std::vector<double>&)) &OrderBookSnapshot::apply, "Applies a 3 * n element list of n deltas, with format timestamp price signed_quantity")
+        .def("apply", (void (OrderBookSnapshot::*)(std::map<double, double>&, std::map<double, double>&)) &OrderBookSnapshot::apply, "Rewrites snapshot with new asks and bids")
         .def("get_snapshot_at_point_in_time", &OrderBookSnapshot::getSnapshotAtPointInTime, py::return_value_policy::take_ownership, "Gets a new snapshot at a point in time")
         .def("calculate_bid_ask_differential_bins", &OrderBookSnapshot::calculateBidAskDifferentialBins, py::return_value_policy::take_ownership, py::arg("bins"), py::arg("mode") = 1, "Calculates the bid-ask spread by bins provided by")
         .def_property_readonly("asks", &OrderBookSnapshot::getAsks)

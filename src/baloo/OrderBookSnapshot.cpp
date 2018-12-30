@@ -4,11 +4,13 @@
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <cmath>
 
 #include "OrderBookDelta.h"
 
 void OrderBookSnapshot::apply(OrderBookDelta& delta) {
-    deltas.emplace(delta.getTimestamp(), delta);
+    if (saveMessages)
+        deltas.emplace(delta.getTimestamp(), delta);
     auto & whichMap = (delta.getDirection() == OrderDirection::Ask) ? asks : bids;
     if (delta.getQuantity() > 0)
         whichMap.emplace(delta.getPrice(), delta.getQuantity());
@@ -22,7 +24,35 @@ void OrderBookSnapshot::apply(std::vector<OrderBookDelta> &deltas) {
     }
 }
 
-void OrderBookSnapshot::become(std::map<double, double>& asks, std::map<double, double>& bids) {
+void OrderBookSnapshot::apply(double timestamp, double price, double quantity, OrderDirection::OrderDirectionEnum direction) {
+    if (saveMessages)
+        deltas.emplace(timestamp, *new OrderBookDelta(timestamp, price, quantity, direction));
+    auto & whichMap = (direction == OrderDirection::Ask) ? asks : bids;
+    if (quantity > 0)
+        whichMap.emplace(price, quantity);
+    else
+        whichMap.erase(price);
+}
+
+void OrderBookSnapshot::apply(std::vector<std::tuple<double, double, double, OrderDirection::OrderDirectionEnum>>& deltas) {
+    for (std::tuple<double, double, double, OrderDirection::OrderDirectionEnum>& delta : deltas) {
+        apply(std::get<0>(delta), std::get<1>(delta), std::get<2>(delta), std::get<3>(delta));
+    }
+}
+
+void OrderBookSnapshot::apply(std::vector<double>& concatenatedDeltas) {
+    int numberOfDeltas = concatenatedDeltas.size() / 3;
+    for (int i = 0; i < numberOfDeltas; i++) {
+        double timestamp = concatenatedDeltas[3 * i + 0];
+        double price = concatenatedDeltas[3 * i + 1];
+        double quantityRaw = concatenatedDeltas[3 * i + 2];
+        OrderDirection::OrderDirectionEnum direction = (quantityRaw >= 0) ? OrderDirection::Bid : OrderDirection::Ask;
+        double quantity = std::abs(quantityRaw);
+        apply(timestamp, price, quantity, direction);
+    }
+}
+
+void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, double>& bids) {
     this->initialSnapshot = *new ImmutableOrderBookSnapshot(asks, bids);
     this->asks = asks;
     this->bids = bids;
