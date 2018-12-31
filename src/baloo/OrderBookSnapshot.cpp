@@ -13,7 +13,7 @@ void OrderBookSnapshot::apply(OrderBookDelta& delta) {
         deltas.emplace(delta.getTimestamp(), delta);
     auto & whichMap = (delta.getDirection() == OrderDirection::Ask) ? asks : bids;
     if (delta.getQuantity() > 0)
-        whichMap.emplace(delta.getPrice(), delta.getQuantity());
+        whichMap[delta.getPrice()] = delta.getQuantity();
     else
         whichMap.erase(delta.getPrice());
 }
@@ -29,7 +29,7 @@ void OrderBookSnapshot::apply(double timestamp, double price, double quantity, O
         deltas.emplace(timestamp, *new OrderBookDelta(timestamp, price, quantity, direction));
     auto & whichMap = (direction == OrderDirection::Ask) ? asks : bids;
     if (quantity > 0)
-        whichMap.emplace(price, quantity);
+        whichMap[price] = quantity;
     else
         whichMap.erase(price);
 }

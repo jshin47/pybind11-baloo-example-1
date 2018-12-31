@@ -34,6 +34,7 @@
         "valarray": "cpp",
         "__string": "cpp",
         "bitset": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "queue": "cpp"
     }
 }
