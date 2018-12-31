@@ -127,41 +127,24 @@ class BalooModuleTests(unittest.TestCase):
         factors = [1, 2, 3]
         modes = [1]
         sizes = [100, 150, 200, 250, 300, 350]
-        for mode in modes:
-            for how_many in sizes:
-                snapshot1 = OrderBookSnapshot(saveMessages = false)
-                deltas = [OrderBookDelta(timestamp = (float)(i), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
-                init_deltas = [OrderBookDelta(timestamp = (float)(i), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
-                snapshot1.apply(init_deltas)
-                time_initialized = datetime.datetime.now()
-                for i in range(n):
-                    bins = list(range(101))
-                    snapshot1.apply(deltas[i*how_many:(i+1)*how_many])
-                    bins_output = snapshot1.calculate_bid_ask_differential_bins(bins, mode)
-                    x[i] = bins_output
-                time_binned = datetime.datetime.now()
-                print(f"Mode {mode} - It took {(time_binned - time_initialized).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins over {n} snapshots")
-
-    def test_bin_with_save(self):
-        n=100
-        x = np.zeros((n,100))
-        factors = [1, 2, 3]
-        modes = [1]
-        sizes = [100, 150, 200, 250, 300, 350]
-        for mode in modes:
-            for how_many in sizes:
-                snapshot1 = OrderBookSnapshot(saveMessages = True)
-                deltas = [OrderBookDelta(timestamp = (float)(i), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
-                init_deltas = [OrderBookDelta(timestamp = (float)(i), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
-                snapshot1.apply(init_deltas)
-                time_initialized = datetime.datetime.now()
-                for i in range(n):
-                    bins = list(range(101))
-                    snapshot1.apply(deltas[i*how_many:(i+1)*how_many])
-                    bins_output = snapshot1.calculate_bid_ask_differential_bins(bins, mode)
-                    x[i] = bins_output
-                time_binned = datetime.datetime.now()
-                print(f"Mode {mode} - It took {(time_binned - time_initialized).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins over {n} snapshots")
+        should_saves = [True, False]
+        for should_save in should_saves:
+            for mode in modes:
+                for how_many in sizes:
+                    print(f"should_save = {should_save} and mode = {mode} and how_many = {how_many}")
+                    for j in range(5):
+                        snapshot1 = OrderBookSnapshot(saveMessages = should_save)
+                        deltas = [OrderBookDelta(timestamp = (float)(i), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                        init_deltas = [OrderBookDelta(timestamp = (float)(i), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
+                        snapshot1.apply(init_deltas)
+                        time_initialized = datetime.datetime.now()
+                        for i in range(n):
+                            bins = list(range(101))
+                            snapshot1.apply(deltas[i*how_many:(i+1)*how_many])
+                            bins_output = snapshot1.calculate_bid_ask_differential_bins(bins, mode)
+                            x[i] = bins_output
+                        time_binned = datetime.datetime.now()
+                        print(f"Mode {mode} - It took {(time_binned - time_initialized).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins over {n} snapshots")
 
     def test_bin_raw(self):
         n=100

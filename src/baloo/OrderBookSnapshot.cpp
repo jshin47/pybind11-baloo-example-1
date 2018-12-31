@@ -60,6 +60,10 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
 }
 
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
+    if (!saveMessages) {
+        throw "Cannot get snapshot at point in time when saveMessages is false.";
+    }
+
     OrderBookSnapshot& snapshot = *new OrderBookSnapshot(initialSnapshot);
     std::map<double,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);
 
