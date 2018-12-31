@@ -89,7 +89,8 @@ def test_apply_overwrites_appropriately(save_messages):
         assert snapshot_cpp.asks[i + count_of_each_side] == asks_before[i + count_of_each_side] + 17.3
         assert snapshot_cpp.bids[i] == bids_before[i] + 17.3
 
-def test_cpp_apply_is_faster_than_py_apply(save_messages, count_of_each_side):
+def test_cpp_apply_is_faster_than_py_apply(save_messages):
+    count_of_each_side = 100000
 
     snapshot_cpp = OrderBookSnapshot(saveMessages = False)
 
@@ -111,11 +112,11 @@ def test_cpp_apply_is_faster_than_py_apply(save_messages, count_of_each_side):
         snapshot_py.apply(OrderBookDelta(time.time(), i, i, OrderDirection.Bid))
 
     time_py_end = datetime.datetime.now()
-    time_py = time_py_end - time_cpp_start
+    time_py = time_py_end - time_py_start
 
     time_py_to_cpp_ratio = time_py / time_cpp
 
-    assert time_py_to_cpp_ratio > 1
+    assert time_py_to_cpp_ratio > 3
     
 
 
