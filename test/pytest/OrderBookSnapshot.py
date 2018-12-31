@@ -175,7 +175,7 @@ def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
 
     bins_output_cpp = snapshot_cpp.calculate_bid_ask_differential_bins(bins)
     bins_output_py = snapshot_py.calculate_bid_ask_differential_bins(bins)
-    #print(bins_output_cpp)
+    print(bins_output_cpp)
     #print(bins_output_py)
     assert len(bins_output_cpp) == len(bins) - 1
     assert len(bins_output_cpp) == len(bins_output_py)
