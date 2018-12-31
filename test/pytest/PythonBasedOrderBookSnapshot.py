@@ -20,6 +20,7 @@ class PythonBasedOrderBookSnapshot:
         else:
             which_map[delta.price] = delta.quantity
 
+    # Terribly inefficient, but just wanted to make sure it was very clear what this is doing.
     def calculate_bid_ask_differential_bins(self, bins):
         bins_length = len(bins)
         bins_output = []
