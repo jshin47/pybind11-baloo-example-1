@@ -11,6 +11,10 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("save_messages", [True, False])
     if 'count_of_each_side' in metafunc.fixturenames:
         metafunc.parametrize("count_of_each_side", [100, 1000])
+    if 'bin_factor' in metafunc.fixturenames:
+        metafunc.parametrize("bin_factor", [0, 0.1, 0.2, 0.25, 1/3, 0.4])
+    if 'bin_step' in metafunc.fixturenames:
+        metafunc.parametrize("bin_step", [1, 2, 5, 10, 20])
 
 def assert_snapshots_asks_and_bids_are_equal(A, B):
     assert eq(A.asks, B.asks) == True
@@ -150,31 +154,30 @@ def test_cpp_apply_is_much_faster_than_py_apply_list(save_messages):
 
     assert time_py_to_cpp_ratio > 10
 
-# def test_binning_works():
-#     save_messages = True
-#     count_of_each_side = 10
-#     snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-#     snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
+    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
 
-#     def apply_to_both_snapshots(delta):
-#         snapshot_cpp.apply(delta)
-#         snapshot_py.apply(delta)
+    def apply_to_both_snapshots(delta):
+        snapshot_cpp.apply(delta)
+        snapshot_py.apply(delta)
 
-#     for i in range(1, count_of_each_side + 1):
-#         apply_to_both_snapshots(OrderBookDelta(time.time(), i + count_of_each_side, i, OrderDirection.Ask))
-#         apply_to_both_snapshots(OrderBookDelta(time.time(), i, i, OrderDirection.Bid))
+    for i in range(1, count_of_each_side + 1):
+        apply_to_both_snapshots(OrderBookDelta(time.time(), i + count_of_each_side, i, OrderDirection.Ask))
+        apply_to_both_snapshots(OrderBookDelta(time.time(), i, i, OrderDirection.Bid))
 
-#     assert_snapshots_asks_and_bids_are_equal(snapshot_cpp, snapshot_py)
+    assert_snapshots_asks_and_bids_are_equal(snapshot_cpp, snapshot_py)
 
-#     bins = list(range(1, count_of_each_side * 2 + 1))
+    bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
+    bin_right = ((int)((1 - bin_factor) * (count_of_each_side * 2 + 1)))
 
-#     bins_output_cpp = snapshot_cpp.calculate_bid_ask_differential_bins(bins)
-    
-#     assert len(bins_output_cpp) == len(bins) - 1
+    bins = list(range(bin_left, bin_right, bin_step))
 
-#     print(bins_output_cpp)
-
-#     for i in range(1, count_of_each_side + 1):
-#         assert bins_output_cpp[i - 1] == i
-#         assert bins_output_cpp[count_of_each_side + i - 1] == -i
+    bins_output_cpp = snapshot_cpp.calculate_bid_ask_differential_bins(bins)
+    bins_output_py = snapshot_py.calculate_bid_ask_differential_bins(bins)
+    #print(bins_output_cpp)
+    #print(bins_output_py)
+    assert len(bins_output_cpp) == len(bins) - 1
+    assert len(bins_output_cpp) == len(bins_output_py)
+    assert eq(bins_output_cpp, bins_output_py) == True
     
