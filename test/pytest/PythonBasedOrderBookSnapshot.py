@@ -20,3 +20,5 @@ class PythonBasedOrderBookSnapshot:
         else:
             which_map[delta.price] = delta.quantity
 
+    def calculate_bid_ask_differential_bins(bins):
+        raise 'not implemented yet'
