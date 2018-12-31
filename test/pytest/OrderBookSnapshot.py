@@ -175,9 +175,43 @@ def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
 
     bins_output_cpp = snapshot_cpp.calculate_bid_ask_differential_bins(bins)
     bins_output_py = snapshot_py.calculate_bid_ask_differential_bins(bins)
-    print(bins_output_cpp)
-    #print(bins_output_py)
+
     assert len(bins_output_cpp) == len(bins) - 1
     assert len(bins_output_cpp) == len(bins_output_py)
     assert eq(bins_output_cpp, bins_output_py) == True
     
+def test_binning_is_much_faster(save_messages):
+    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+
+    count_of_each_side = 10000
+
+    def apply_to_both_snapshots(delta):
+        snapshot_cpp.apply(delta)
+        snapshot_py.apply(delta)
+
+    for i in range(1, count_of_each_side + 1):
+        apply_to_both_snapshots(OrderBookDelta(time.time(), i + count_of_each_side, i, OrderDirection.Ask))
+        apply_to_both_snapshots(OrderBookDelta(time.time(), i, i, OrderDirection.Bid))
+
+    assert_snapshots_asks_and_bids_are_equal(snapshot_cpp, snapshot_py)
+
+    bin_left = 1500
+    bin_right = 9000
+    bin_step = 15
+
+    bins = list(range(bin_left, bin_right, bin_step))
+
+    time_cpp_start = time.time()
+    bins_output_cpp = snapshot_cpp.calculate_bid_ask_differential_bins(bins)
+    time_cpp_end = time.time()
+    time_cpp = time_cpp_end - time_cpp_start
+
+    time_py_start = time.time()
+    bins_output_py = snapshot_py.calculate_bid_ask_differential_bins(bins)
+    time_py_end = time.time()
+    time_py = time_py_end - time_py_start
+    
+    time_py_to_cpp_ratio = time_py / time_cpp
+
+    assert time_py_to_cpp_ratio > 100
