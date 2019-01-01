@@ -218,7 +218,7 @@ def test_binning_is_much_faster(save_messages):
 
     assert time_py_to_cpp_ratio > 100
 
-# needs to be expanded greatly, i have little faith in this so far
+# TODO: Implement this in PythonBasedOrderBookSnapshot a different way and compare.
 def test_apply_with_time_buckets_output_looks_correct(save_messages, time_buckets_count, bin_factor, bin_step):
     count_of_each_side = 100
     bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
@@ -235,7 +235,6 @@ def test_apply_with_time_buckets_output_looks_correct(save_messages, time_bucket
     time_bucket_step = ((int)(2 * count_of_each_side / time_buckets_count))
     time_buckets = range(2, 2*count_of_each_side+1, time_bucket_step)
 
-    #time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
     timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
     assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
