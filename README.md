@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/jshin47/pybind11-baloo-example-1.svg?branch=master)](https://travis-ci.org/jshin47/pybind11-baloo-example-1)
+
 # Getting Started
 
  - `git clone --recursive https://github.com/jshin47/pybind11-baloo-example-1`
