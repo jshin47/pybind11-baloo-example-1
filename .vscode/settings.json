@@ -35,6 +35,7 @@
         "__string": "cpp",
         "bitset": "cpp",
         "memory": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "utility": "cpp"
     }
 }

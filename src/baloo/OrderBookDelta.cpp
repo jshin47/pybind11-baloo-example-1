@@ -21,6 +21,9 @@ double OrderBookDelta::getQuantity() {
 }
 
 void OrderBookDelta::setQuantity(double quantity) {
+    if (quantity < 0) {
+        throw "Quantity must be non-negative.";
+    }
     this->quantity = quantity;
 }
 

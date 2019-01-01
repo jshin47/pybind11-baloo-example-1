@@ -41,6 +41,10 @@ void OrderBookSnapshot::apply(std::vector<std::tuple<double, double, double, Ord
 }
 
 void OrderBookSnapshot::apply(std::vector<double>& concatenatedDeltas) {
+    if (concatenatedDeltas.size() % 3 != 0) {
+        throw "Deltas must be defined in tuples of three (timestamp, price, quantity)";
+    }
+    
     int numberOfDeltas = concatenatedDeltas.size() / 3;
     for (int i = 0; i < numberOfDeltas; i++) {
         double timestamp = concatenatedDeltas[3 * i + 0];
@@ -57,6 +61,53 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->asks = asks;
     this->bids = bids;
     this->deltas.clear();
+}
+
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin) {
+    if (deltas.size() < 1) {
+        throw "At least one delta must be provided.";
+    }
+    if (timeBuckets.size() < 2) {
+        throw "At least one time bucket must be defined. (N points defines N - 1 time buckets.)";
+    }
+    if (bins.size() < 2) {
+        throw "At least one bin must be defined. (N points defines N - 1 bins.)";
+    }
+    
+    std::vector<std::vector<double>>& buckets_list = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+
+    std::vector<OrderBookDelta>::iterator deltaIterator = deltas.begin();
+
+    while (deltaIterator != deltas.end()) {
+        OrderBookDelta& delta = *deltaIterator;
+        double timestamp = delta.getTimestamp();
+        if (timestamp >= timeBuckets[0]) {
+            break;
+        } else {
+            if (!ignoreDeltasBeforeBeginningOfFirstBin) {
+                apply(delta);
+            }
+            ++deltaIterator;
+        }
+    }
+
+    if (deltaIterator == deltas.end()) return buckets_list;
+
+    for (std::vector<double>::iterator leftBucketIterator = timeBuckets.begin(); leftBucketIterator != timeBuckets.end() - 1; ++leftBucketIterator) {
+        double leftBucketValue = *leftBucketIterator;
+        double rightBucketValue = *(leftBucketIterator + 1);
+        OrderBookDelta& delta = *deltaIterator;
+        double timestamp = delta.getTimestamp();
+        while (timestamp >= leftBucketValue && timestamp < rightBucketValue && deltaIterator != deltas.end()) {
+            apply(delta);
+            ++deltaIterator;
+            delta = *deltaIterator;
+            timestamp = delta.getTimestamp();
+        }
+        buckets_list[leftBucketIterator - timeBuckets.begin()] = calculateBidAskDifferentialBins(bins);
+    }
+    
+    return buckets_list;
 }
 
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
