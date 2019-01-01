@@ -20,7 +20,7 @@ class PythonBasedOrderBookSnapshot:
         else:
             which_map[delta.price] = delta.quantity
 
-    # Terribly inefficient, but just wanted to make sure it was very clear what this is doing.
+    # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
     def calculate_bid_ask_differential_bins(self, bins):
         bins_length = len(bins)
         bins_output = []
@@ -39,5 +39,21 @@ class PythonBasedOrderBookSnapshot:
             bins_output.append(total)
         
         return bins_output
+
+    # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
+    def apply_and_bucket(self, deltas, time_buckets, bins):
+        deltas = list(filter(lambda delta: delta.timestamp >= time_buckets[0], deltas))
+        output = []
+
+        for i in range(0, len(time_buckets) - 1):
+            left_pt = time_buckets[i]
+            rite_pt = time_buckets[i + 1]
+            deltas_for_time_pt = list(filter(lambda delta: delta.timestamp >= left_pt and delta.timestamp < rite_pt, deltas))
+            for delta in deltas_for_time_pt:
+                self.apply(delta)
+            output_for_time_pt = self.calculate_bid_ask_differential_bins(bins)
+            output.append(output_for_time_pt)
+
+        return output
 
 
