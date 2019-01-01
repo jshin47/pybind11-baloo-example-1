@@ -6,3 +6,4 @@ _generate/
 *.py[cod]
 *.egg-info
 **/__pycache
+.DS_Store
