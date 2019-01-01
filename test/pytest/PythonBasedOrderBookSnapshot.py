@@ -41,7 +41,12 @@ class PythonBasedOrderBookSnapshot:
         return bins_output
 
     # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
-    def apply_and_bucket(self, deltas, time_buckets, bins):
+    def apply_and_bucket(self, deltas, time_buckets, bins, ignore_deltas_before_beginning_of_first_bin = True):
+        if ignore_deltas_before_beginning_of_first_bin == False:
+            deltas_before_first_bin = list(filter(lambda delta: delta.timestamp < time_buckets[0], deltas))
+            for delta in deltas_before_first_bin:
+                apply(delta)
+
         deltas = list(filter(lambda delta: delta.timestamp >= time_buckets[0], deltas))
         output = []
 

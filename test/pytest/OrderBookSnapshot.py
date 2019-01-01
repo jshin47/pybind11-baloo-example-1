@@ -275,3 +275,5 @@ def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
     time_applied_bucketed_py_to_cpp_ratio = time_applied_bucketed_py / time_applied_bucketed_cpp
 
     assert time_applied_bucketed_py_to_cpp_ratio > 100
+
+    assert time_applied_bucketed_cpp < count_of_each_side * 0.00001

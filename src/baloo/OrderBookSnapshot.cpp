@@ -59,7 +59,7 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins) {
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin) {
     if (timeBuckets.size() < 2) {
         throw "Less than one time bucket defined (requires at least two points in time)";
     }
@@ -74,6 +74,9 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
         if (timestamp >= timeBuckets[0]) {
             break;
         } else {
+            if (!ignoreDeltasBeforeBeginningOfFirstBin) {
+                apply(delta);
+            }
             ++deltaIterator;
         }
     }
