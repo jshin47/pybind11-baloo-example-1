@@ -59,6 +59,42 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins) {
+    if (timeBuckets.size() < 2) {
+        throw "Less than one time bucket defined (requires at least two points in time)";
+    }
+    
+    std::vector<std::vector<double>>& buckets_list = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+
+    std::vector<OrderBookDelta>::iterator deltaIterator = deltas.begin();
+
+    while (deltaIterator != deltas.end()) {
+        OrderBookDelta& delta = *deltaIterator;
+        double timestamp = delta.getTimestamp();
+        if (timestamp >= timeBuckets[0]) {
+            break;
+        } else {
+            ++deltaIterator;
+        }
+    }
+
+    for (std::vector<double>::iterator leftBucketIterator = timeBuckets.begin(); leftBucketIterator != timeBuckets.end() - 1; ++leftBucketIterator) {
+        double leftBucketValue = *leftBucketIterator;
+        double rightBucketValue = *(leftBucketIterator + 1);
+        OrderBookDelta& delta = *deltaIterator;
+        double timestamp = delta.getTimestamp();
+        while (timestamp >= leftBucketValue && timestamp < rightBucketValue && deltaIterator != deltas.end()) {
+            apply(delta);
+            ++deltaIterator;
+            delta = *deltaIterator;
+            timestamp = delta.getTimestamp();
+        }
+        buckets_list[leftBucketIterator - timeBuckets.begin()] = calculateBidAskDifferentialBins(bins);
+    }
+    
+    return buckets_list;
+}
+
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
     if (!saveMessages) {
         throw "Cannot get snapshot at point in time when saveMessages is false.";

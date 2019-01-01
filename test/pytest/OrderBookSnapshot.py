@@ -215,3 +215,20 @@ def test_binning_is_much_faster(save_messages):
     time_py_to_cpp_ratio = time_py / time_cpp
 
     assert time_py_to_cpp_ratio > 100
+
+def test_apply_with_time_buckets():
+    save_messages = True
+    count_of_each_side = 5
+    bins = list(range(1, count_of_each_side * 2 + 1))
+
+    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) for i in range(1, count_of_each_side + 1)]
+    asks_to_apply = [OrderBookDelta(timestamp = count_of_each_side + i, price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+    to_apply = bids_to_apply + asks_to_apply
+    time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
+    timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets,bins)
+    print(list(map(lambda d: f"timestamp - {d.timestamp} price - {d.price} quantity - {d.quantity} direction - {d.direction}", to_apply)))
+
+    print(time_buckets)
+    print(timebucket_bins_cpp)

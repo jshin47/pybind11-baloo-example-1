@@ -40,7 +40,8 @@ PYBIND11_MODULE(baloo, m) {
         .def("apply", (void (OrderBookSnapshot::*)(std::vector<double>&)) &OrderBookSnapshot::apply, "Applies a 3 * n element list of n deltas, with format timestamp price signed_quantity")
         .def("apply", (void (OrderBookSnapshot::*)(std::map<double, double>&, std::map<double, double>&)) &OrderBookSnapshot::apply, "Rewrites snapshot with new asks and bids")
         .def("get_snapshot_at_point_in_time", &OrderBookSnapshot::getSnapshotAtPointInTime, py::return_value_policy::take_ownership, "Gets a new snapshot at a point in time")
-        .def("calculate_bid_ask_differential_bins", &OrderBookSnapshot::calculateBidAskDifferentialBins, py::return_value_policy::take_ownership, py::arg("bins"), py::arg("mode") = 1, "Calculates the bid-ask spread by bins provided by")
+        .def("calculate_bid_ask_differential_bins", &OrderBookSnapshot::calculateBidAskDifferentialBins, py::return_value_policy::take_ownership, py::arg("bins"), py::arg("mode") = 1, "Calculates the bid-ask spread by bins")
+        .def("apply_and_bucket", &OrderBookSnapshot::applyAndBucket, py::return_value_policy::take_ownership, py::arg("deltas"), py::arg("time_buckets"), py::arg("bins"), "Calculates the bid-ask spread over time buckets")
         .def_property_readonly("asks", &OrderBookSnapshot::getAsks)
         .def_property_readonly("bids", &OrderBookSnapshot::getBids)
     ;
