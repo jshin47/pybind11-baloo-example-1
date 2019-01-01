@@ -154,7 +154,7 @@ def test_cpp_apply_is_much_faster_than_py_apply_list(save_messages):
 
     time_py_to_cpp_ratio = time_py / time_cpp
 
-    assert time_py_to_cpp_ratio > 10
+    assert time_py_to_cpp_ratio > 5
 
 def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
     snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
