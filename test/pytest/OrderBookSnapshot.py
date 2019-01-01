@@ -259,7 +259,6 @@ def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
     time_bucket_step = ((int)(2 * count_of_each_side / time_buckets_count))
     time_buckets = range(2, 2*count_of_each_side+1, time_bucket_step)
 
-    #time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
     time_applied_bucketed_cpp_start = time.time()
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
     time_applied_bucketed_cpp_end = time.time()
