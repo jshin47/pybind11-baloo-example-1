@@ -5,14 +5,14 @@ from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot
 
 class PythonBasedOrderBookSnapshot:
 
-    def __init__(self, saveMessages = True):
-        self.saveMessages = saveMessages
+    def __init__(self, save_messages = True):
+        self.save_messages = save_messages
         self.deltas = { }
         self.asks = { }
         self.bids = { }
 
     def apply(self, delta):
-        if self.saveMessages:
+        if self.save_messages:
             self.deltas[delta.timestamp] = delta
         which_map = self.asks if delta.direction == OrderDirection.Ask else self.bids
         if delta.quantity == 0:

@@ -15,14 +15,16 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("bin_factor", [0, 0.1, 0.2, 0.25, 1/3, 0.4])
     if 'bin_step' in metafunc.fixturenames:
         metafunc.parametrize("bin_step", [1, 2, 5, 10, 20])
+    if 'time_buckets_count' in metafunc.fixturenames:
+        metafunc.parametrize("time_buckets_count", [2, 5, 10, 20, 50])
 
 def assert_snapshots_asks_and_bids_are_equal(A, B):
     assert eq(A.asks, B.asks) == True
     assert eq(A.bids, B.bids) == True
 
 def test_orderbook_snapshot_apply_saves_and_zeroes_appropriately(save_messages, count_of_each_side):
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
 
     def apply_to_both_snapshots(delta):
         snapshot_cpp.apply(delta)
@@ -46,8 +48,8 @@ def test_orderbook_snapshot_apply_saves_and_zeroes_appropriately(save_messages, 
         assert snapshot_cpp.bids.get(i, None) == None
 
 def test_orderbook_snapshot_repeated_apply_is_idempotent(save_messages, count_of_each_side):
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
 
     def apply_to_both_snapshots(delta):
         snapshot_cpp.apply(delta)
@@ -69,8 +71,8 @@ def test_orderbook_snapshot_repeated_apply_is_idempotent(save_messages, count_of
 def test_apply_overwrites_appropriately(save_messages):
     count_of_each_side = 100
 
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
 
     def apply_to_both_snapshots(delta):
         snapshot_cpp.apply(delta)
@@ -96,7 +98,7 @@ def test_apply_overwrites_appropriately(save_messages):
 def test_cpp_apply_is_faster_than_py_apply_individual(save_messages):
     count_of_each_side = 100000
 
-    snapshot_cpp = OrderBookSnapshot(saveMessages = False)
+    snapshot_cpp = OrderBookSnapshot(save_messages = False)
 
     time_cpp_start = time.time()
 
@@ -107,7 +109,7 @@ def test_cpp_apply_is_faster_than_py_apply_individual(save_messages):
     time_cpp_end = time.time()
     time_cpp = time_cpp_end - time_cpp_start
 
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = False)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = False)
 
     time_py_start = time.time()
 
@@ -125,7 +127,7 @@ def test_cpp_apply_is_faster_than_py_apply_individual(save_messages):
 def test_cpp_apply_is_much_faster_than_py_apply_list(save_messages):
     count_of_each_side = 100000
 
-    snapshot_cpp = OrderBookSnapshot(saveMessages = False)
+    snapshot_cpp = OrderBookSnapshot(save_messages = False)
 
     asks_to_apply = [OrderBookDelta(timestamp = time.time(), price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
     bids_to_apply = [OrderBookDelta(timestamp = time.time(), price = i, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
@@ -138,7 +140,7 @@ def test_cpp_apply_is_much_faster_than_py_apply_list(save_messages):
     time_cpp_end = time.time()
     time_cpp = time_cpp_end - time_cpp_start
 
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = False)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = False)
 
     time_py_start = time.time()
 
@@ -155,8 +157,8 @@ def test_cpp_apply_is_much_faster_than_py_apply_list(save_messages):
     assert time_py_to_cpp_ratio > 10
 
 def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
 
     def apply_to_both_snapshots(delta):
         snapshot_cpp.apply(delta)
@@ -181,8 +183,8 @@ def test_binning_works(save_messages, count_of_each_side, bin_factor, bin_step):
     assert eq(bins_output_cpp, bins_output_py) == True
     
 def test_binning_is_much_faster(save_messages):
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
 
     count_of_each_side = 10000
 
@@ -217,17 +219,59 @@ def test_binning_is_much_faster(save_messages):
     assert time_py_to_cpp_ratio > 100
 
 # needs to be expanded greatly, i have little faith in this so far
-def test_apply_with_time_buckets():
-    save_messages = True
-    count_of_each_side = 5
-    bins = list(range(1, count_of_each_side * 2 + 1))
+def test_apply_with_time_buckets_output_looks_correct(save_messages, time_buckets_count, bin_factor, bin_step):
+    count_of_each_side = 100
+    bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
+    bin_right = ((int)((1 - bin_factor) * (count_of_each_side * 2 + 1)))
 
-    snapshot_cpp = OrderBookSnapshot(saveMessages = save_messages)
-    snapshot_py = PythonBasedOrderBookSnapshot(saveMessages = save_messages)
+    bins = list(range(bin_left, bin_right, bin_step))
+
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
     bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) for i in range(1, count_of_each_side + 1)]
     asks_to_apply = [OrderBookDelta(timestamp = count_of_each_side + i, price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
     to_apply = bids_to_apply + asks_to_apply
-    time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
+
+    time_bucket_step = ((int)(2 * count_of_each_side / time_buckets_count))
+    time_buckets = range(2, 2*count_of_each_side+1, time_bucket_step)
+
+    #time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
     timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
     assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
+
+def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
+    count_of_each_side = 2500
+    time_buckets_count = 50
+    bin_factor = 0.2
+    bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
+    bin_right = ((int)((1 - bin_factor) * (count_of_each_side * 2 + 1)))
+    bin_step = 20
+
+    bins = list(range(bin_left, bin_right, bin_step))
+
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
+    bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) for i in range(1, count_of_each_side + 1)]
+    asks_to_apply = [OrderBookDelta(timestamp = count_of_each_side + i, price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+    to_apply = bids_to_apply + asks_to_apply
+
+    time_bucket_step = ((int)(2 * count_of_each_side / time_buckets_count))
+    time_buckets = range(2, 2*count_of_each_side+1, time_bucket_step)
+
+    #time_buckets = [1, 2*count_of_each_side/4, 2*count_of_each_side/2, 3*2*count_of_each_side/4, 2*count_of_each_side]
+    time_applied_bucketed_cpp_start = time.time()
+    timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
+    time_applied_bucketed_cpp_end = time.time()
+    time_applied_bucketed_cpp = time_applied_bucketed_cpp_end - time_applied_bucketed_cpp_start
+    
+    time_applied_bucketed_py_start = time.time()
+    timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
+    time_applied_bucketed_py_end = time.time()
+    time_applied_bucketed_py = time_applied_bucketed_py_end - time_applied_bucketed_py_start
+    
+    assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
+    
+    time_applied_bucketed_py_to_cpp_ratio = time_applied_bucketed_py / time_applied_bucketed_cpp
+
+    assert time_applied_bucketed_py_to_cpp_ratio > 100

@@ -56,7 +56,7 @@ class BalooModuleTests(unittest.TestCase):
         self.assertEqual(len(snapshot1.bids), 1)
 
     def test_get_snapshot_at_point_in_time(self):
-        snapshot1 = OrderBookSnapshot(saveMessages = True)
+        snapshot1 = OrderBookSnapshot(save_messages = True)
         delta1 = OrderBookDelta()
         delta1.timestamp = 1
         delta1.quantity = 1
@@ -133,7 +133,7 @@ class BalooModuleTests(unittest.TestCase):
                 for how_many in sizes:
                     print(f"should_save = {should_save} and mode = {mode} and how_many = {how_many}")
                     for j in range(5):
-                        snapshot1 = OrderBookSnapshot(saveMessages = should_save)
+                        snapshot1 = OrderBookSnapshot(save_messages = should_save)
                         deltas = [OrderBookDelta(timestamp = (float)(i), price = i%101, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
                         init_deltas = [OrderBookDelta(timestamp = (float)(i), price = i%97, quantity = i, direction = OrderDirection.Ask if (i % 2 == 0) else OrderDirection.Bid ) for i in range(1, how_many*n+1)]
                         snapshot1.apply(init_deltas)

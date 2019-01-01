@@ -31,8 +31,8 @@ PYBIND11_MODULE(baloo, m) {
     ;
 
     py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot")
-        .def(py::init<bool>(), py::arg("saveMessages") = true)
-        .def(py::init<std::map<double, double>&, std::map<double, double>&, bool>(), py::arg("asks"), py::arg("bids"), py::arg("saveMessages") = true)
+        .def(py::init<bool>(), py::arg("save_messages") = true)
+        .def(py::init<std::map<double, double>&, std::map<double, double>&, bool>(), py::arg("asks"), py::arg("bids"), py::arg("save_messages") = true)
         .def("apply", (void (OrderBookSnapshot::*)(OrderBookDelta &)) &OrderBookSnapshot::apply, "Applies a single order book delta")
         .def("apply", (void (OrderBookSnapshot::*)(std::vector<OrderBookDelta> &)) &OrderBookSnapshot::apply, "Applies a list of order book deltas")
         .def("apply", (void (OrderBookSnapshot::*)(double, double, double, OrderDirection::OrderDirectionEnum)) &OrderBookSnapshot::apply, "Applies a single order book delta by values")
