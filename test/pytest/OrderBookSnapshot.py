@@ -2,7 +2,7 @@ import datetime
 import time
 from operator import eq
 
-from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot
+from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot, ImmutableOrderBookSnapshot
 
 from PythonBasedOrderBookSnapshot import PythonBasedOrderBookSnapshot
 
@@ -275,3 +275,38 @@ def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
     assert time_applied_bucketed_py_to_cpp_ratio > 100
 
     assert time_applied_bucketed_cpp < count_of_each_side * 0.00001
+
+def test_can_apply_with_snapshots_and_deltas(save_messages):
+    count_of_each_side = 100
+    time_buckets_count = 20
+    bin_factor = 0.15
+    bin_step = 10
+    bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
+    bin_right = ((int)((1 - bin_factor) * (count_of_each_side * 2 + 1)))
+
+    bins = list(range(bin_left, bin_right, bin_step))
+
+    snapshot_cpp = OrderBookSnapshot(save_messages = save_messages)
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = save_messages)
+    bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) for i in range(1, count_of_each_side + 1)]
+    asks_to_apply = [OrderBookDelta(timestamp = count_of_each_side + i, price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+    deltas_to_apply = bids_to_apply + asks_to_apply
+    
+    snapshot_asks = {
+        110: 6.66
+    }
+    snapshot_bids = {
+        111: 7.77
+    }
+    snapshot = ImmutableOrderBookSnapshot(asks = snapshot_asks, bids = snapshot_bids, timestamp = count_of_each_side * 2 + 1)
+
+    updates_to_apply = deltas_to_apply + [snapshot]
+
+    time_bucket_step = ((int)(2 * count_of_each_side / time_buckets_count))
+    time_buckets = list(range(2, 2*count_of_each_side+time_bucket_step, time_bucket_step))
+    print(time_buckets)
+    print(count_of_each_side * 2)
+
+    timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(updates_to_apply, time_buckets, bins)
+    print(timebucket_bins_cpp)
+    

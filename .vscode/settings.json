@@ -36,6 +36,7 @@
         "bitset": "cpp",
         "memory": "cpp",
         "queue": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "complex": "cpp"
     }
 }

@@ -18,6 +18,10 @@ void OrderBookSnapshot::apply(OrderBookDelta& delta) {
         whichMap.erase(delta.getPrice());
 }
 
+void OrderBookSnapshot::apply(ImmutableOrderBookSnapshot& snapshot) {
+    apply(snapshot.getAsks(), snapshot.getBids());
+}
+
 void OrderBookSnapshot::apply(std::vector<OrderBookDelta> &deltas) {
     for (OrderBookDelta& delta: deltas) {
         apply(delta);
@@ -63,8 +67,8 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin) {
-    if (deltas.size() < 1) {
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin) {
+    if (updates.size() < 1) {
         throw "At least one delta must be provided.";
     }
     if (timeBuckets.size() < 2) {
@@ -76,33 +80,74 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
     
     std::vector<std::vector<double>>& buckets_list = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
 
-    std::vector<OrderBookDelta>::iterator deltaIterator = deltas.begin();
+    std::vector<OrderBookUpdate>::iterator updateIterator = updates.begin();
+    
+    while (updateIterator != updates.end()) {
+        double timestamp;
 
-    while (deltaIterator != deltas.end()) {
-        OrderBookDelta& delta = *deltaIterator;
-        double timestamp = delta.getTimestamp();
+        OrderBookUpdate& update = *updateIterator;
+        if (std::holds_alternative<OrderBookDelta>(update)) {
+            auto unwrappedDelta = std::get<OrderBookDelta>(update);
+            timestamp = unwrappedDelta.getTimestamp();
+        }
+        else if (std::holds_alternative<ImmutableOrderBookSnapshot>(update)) {
+            auto unwrappedSnapshot = std::get<ImmutableOrderBookSnapshot>(update);
+            timestamp = unwrappedSnapshot.getTimestamp();
+        }
         if (timestamp >= timeBuckets[0]) {
             break;
         } else {
             if (!ignoreDeltasBeforeBeginningOfFirstBin) {
-                apply(delta);
+                if (std::holds_alternative<OrderBookDelta>(update)) {
+                    auto unwrappedDelta = std::get<OrderBookDelta>(update);
+                    apply(unwrappedDelta);
+                }
+                else if (std::holds_alternative<ImmutableOrderBookSnapshot>(update)) {
+                    auto unwrappedSnapshot = std::get<ImmutableOrderBookSnapshot>(update);
+                    apply(unwrappedSnapshot);
+                }
             }
-            ++deltaIterator;
+            ++updateIterator;
         }
     }
 
-    if (deltaIterator == deltas.end()) return buckets_list;
+    if (updateIterator == updates.end()) return buckets_list;
 
     for (std::vector<double>::iterator leftBucketIterator = timeBuckets.begin(); leftBucketIterator != timeBuckets.end() - 1; ++leftBucketIterator) {
         double leftBucketValue = *leftBucketIterator;
         double rightBucketValue = *(leftBucketIterator + 1);
-        OrderBookDelta& delta = *deltaIterator;
-        double timestamp = delta.getTimestamp();
-        while (timestamp >= leftBucketValue && timestamp < rightBucketValue && deltaIterator != deltas.end()) {
-            apply(delta);
-            ++deltaIterator;
-            delta = *deltaIterator;
-            timestamp = delta.getTimestamp();
+        OrderBookUpdate& update = *updateIterator;
+        double timestamp;
+        if (std::holds_alternative<OrderBookDelta>(update)) {
+            auto unwrappedDelta = std::get<OrderBookDelta>(update);
+            timestamp = unwrappedDelta.getTimestamp();
+        }
+        else if (std::holds_alternative<ImmutableOrderBookSnapshot>(update)) {
+            auto unwrappedSnapshot = std::get<ImmutableOrderBookSnapshot>(update);
+            timestamp = unwrappedSnapshot.getTimestamp();
+        }
+        while (timestamp >= leftBucketValue && timestamp < rightBucketValue && updateIterator != updates.end()) {
+            if (std::holds_alternative<OrderBookDelta>(update)) {
+                auto unwrappedDelta = std::get<OrderBookDelta>(update);
+                apply(unwrappedDelta);
+            }
+            else if (std::holds_alternative<ImmutableOrderBookSnapshot>(update)) {
+                auto unwrappedSnapshot = std::get<ImmutableOrderBookSnapshot>(update);
+                apply(unwrappedSnapshot);
+            }
+            ++updateIterator;
+
+            if (updateIterator != updates.end()) {
+                update = *updateIterator;
+                if (std::holds_alternative<OrderBookDelta>(update)) {
+                    auto unwrappedDelta = std::get<OrderBookDelta>(update);
+                    timestamp = unwrappedDelta.getTimestamp();
+                }
+                else if (std::holds_alternative<ImmutableOrderBookSnapshot>(update)) {
+                    auto unwrappedSnapshot = std::get<ImmutableOrderBookSnapshot>(update);
+                    timestamp = unwrappedSnapshot.getTimestamp();
+                }
+            }
         }
         buckets_list[leftBucketIterator - timeBuckets.begin()] = calculateBidAskDifferentialBins(bins);
     }

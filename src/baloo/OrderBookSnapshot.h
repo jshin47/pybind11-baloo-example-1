@@ -7,21 +7,25 @@
 #include <string>
 #include <memory>
 #include <tuple>
+#include <variant>
 
 #include "definitions.h"
 #include "AbsOrderBookSnapshot.h"
 #include "ImmutableOrderBookSnapshot.h"
 #include "OrderBookDelta.h"
 
+typedef std::variant<OrderBookDelta, ImmutableOrderBookSnapshot> OrderBookUpdate;
+
 class OrderBookSnapshot : public AbsOrderBookSnapshot {
 public:
     void apply(OrderBookDelta& delta);
+    void apply(ImmutableOrderBookSnapshot& snapshot);
     void apply(std::vector<OrderBookDelta>& deltas);
     void apply(double timestamp, double price, double quantity, OrderDirection::OrderDirectionEnum direction);
     void apply(std::vector<std::tuple<double, double, double, OrderDirection::OrderDirectionEnum>>& deltas);
     void apply(std::vector<double>& concatenatedDeltas);
     void apply(std::map<double, double>& asks, std::map<double, double>& bids);
-    std::vector<std::vector<double>>& applyAndBucket(std::vector<OrderBookDelta>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin = true);
+    std::vector<std::vector<double>>& applyAndBucket(std::vector<OrderBookUpdate>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin = true);
     OrderBookSnapshot& getSnapshotAtPointInTime(double pointInTime);
 
     std::map<double, OrderBookDelta>& getDeltas();
