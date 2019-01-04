@@ -2,23 +2,37 @@
 
 #include <algorithm>
 
-namespace AbsOrderBookSnapshot_Private {
+bool AbsOrderBookSnapshot::applyBinValueForPriceMapIterator(std::vector<double>& bins, std::vector<double>& binsValues, OrderDirection::OrderDirectionEnum direction, std::pair<double, double> elem) {
+    bool biggerThanOrEqualToSmallestBinElement = elem.first >= bins[0];
+    bool smallerThanBiggestBinElement = elem.first < bins[bins.size() - 1];
+    bool withinSomeBin = biggerThanOrEqualToSmallestBinElement && smallerThanBiggestBinElement;
+    if (withinSomeBin) {
+        auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
+        int position = whichBin - bins.begin() - 1;
+        binsValues[position] = binsValues[position] + ((direction == OrderDirection::Ask) ? -1 : 1) * elem.second;
+        return true;
+    } else if (direction == OrderDirection::Ask && !smallerThanBiggestBinElement) {
+        return false;
+    } else if (direction == OrderDirection::Bid && !biggerThanOrEqualToSmallestBinElement) {
+        return false;
+    }
 
-
-
+    return true;
 }
 
 void AbsOrderBookSnapshot::calculateDifferentialsForBin(std::vector<double>& bins, std::vector<double>& binsValues, std::map<double, double>& priceMap, OrderDirection::OrderDirectionEnum direction) {
     int multiplier = (direction == OrderDirection::Ask) ? -1 : 1;
-    for (auto elem : priceMap) {
-        bool biggerThanOrEqualToSmallestBinElement = elem.first >= bins[0];
-        bool smallerThanBiggestBinElement = elem.first < bins[bins.size() - 1];
-        if (biggerThanOrEqualToSmallestBinElement && smallerThanBiggestBinElement) {
-            auto whichBin = std::upper_bound(bins.begin(), bins.end(), elem.first);
-            int position = whichBin - bins.begin() - 1;
-            binsValues[position] = binsValues[position] + multiplier * elem.second;
-        } else if (!smallerThanBiggestBinElement)
-            break;
+    
+    if (direction == OrderDirection::Ask) {
+        for (auto priceMapIterator = priceMap.begin(); priceMapIterator != priceMap.end(); ++priceMapIterator) {
+            if (!applyBinValueForPriceMapIterator(bins, binsValues, direction, *priceMapIterator)) break;
+        }
+    } else if (direction == OrderDirection::Bid) {
+        for (auto priceMapIterator = priceMap.rbegin(); priceMapIterator != priceMap.rend(); ++priceMapIterator) {
+            if (!applyBinValueForPriceMapIterator(bins, binsValues, direction, *priceMapIterator)) break;
+        }
+    } else {
+        throw "Cannot handle this order direction";
     }
 }
 
