@@ -1,4 +1,0 @@
-{
-  "test/pytest/OrderBookSnapshot.py::test_cpp_apply_is_faster_than_austins_super_slow_python_implementation[False]": true,
-  "test/pytest/OrderBookSnapshot.py::test_cpp_apply_is_faster_than_austins_super_slow_python_implementation[True]": true
-}
