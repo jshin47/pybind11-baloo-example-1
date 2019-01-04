@@ -95,6 +95,37 @@ def test_apply_overwrites_appropriately(save_messages):
         assert snapshot_cpp.asks[i + count_of_each_side] == asks_before[i + count_of_each_side] + 17.3
         assert snapshot_cpp.bids[i] == bids_before[i] + 17.3
 
+def test_cpp_apply_is_faster_than_austins_super_slow_python_implementation(save_messages):
+
+    count_of_each_side = 100000
+
+    snapshot_cpp = OrderBookSnapshot(save_messages = False)
+    deltas = [OrderBookDelta(1, i + count_of_each_side, i, OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+    deltas = deltas + [OrderBookDelta(1, i, i, OrderDirection.Bid) for i in range(1, count_of_each_side + 1)]
+    
+    time_cpp_start = time.time()
+
+    for delta in deltas:
+        snapshot_cpp.apply(delta)
+
+    time_cpp_end = time.time()
+    time_cpp = time_cpp_end - time_cpp_start
+
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = False)
+
+    time_py_start = time.time()
+
+    for i in range(1, count_of_each_side + 1):
+        snapshot_py.apply_fast(['sell', i + count_of_each_side, i])
+        snapshot_py.apply_fast(['buy', i, i])
+
+    time_py_end = time.time()
+    time_py = time_py_end - time_py_start
+
+    time_py_to_cpp_ratio = time_py / time_cpp
+    print(time_py_to_cpp_ratio)
+    assert time_py_to_cpp_ratio > 1.0
+
 def test_cpp_apply_is_faster_than_py_apply_individual(save_messages):
     count_of_each_side = 100000
 
