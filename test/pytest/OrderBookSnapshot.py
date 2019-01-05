@@ -126,6 +126,55 @@ def test_cpp_apply_is_faster_than_austins_super_slow_python_implementation(save_
     print(time_py_to_cpp_ratio)
     assert time_py_to_cpp_ratio > 1.0
 
+
+
+def test_cpp_apply_is_much_faster_than_py_apply_list_austin_version(save_messages):
+    count_of_each_side = 15000
+
+    snapshot_cpp = OrderBookSnapshot(save_messages = False)
+
+    asks_to_apply = [OrderBookDelta(timestamp = time.time(), price = i + count_of_each_side, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+    bids_to_apply = [OrderBookDelta(timestamp = time.time(), price = i, quantity = i, direction = OrderDirection.Ask) for i in range(1, count_of_each_side + 1)]
+
+    time_cpp_start = time.time()
+
+    snapshot_cpp.apply(asks_to_apply)
+    snapshot_cpp.apply(bids_to_apply)
+
+    time_cpp_end = time.time()
+    time_cpp = time_cpp_end - time_cpp_start
+
+    snapshot_py = PythonBasedOrderBookSnapshot(save_messages = False)
+
+    		
+    updates_python = [[1, i + count_of_each_side, i] for i in range(1,  count_of_each_side + 1)]
+    updates_python = updates_python + [[0, i, i] for i in range(1,  count_of_each_side + 1)]
+
+    time_py_start = time.time()
+    apply_fast = snapshot_py.apply_fast
+    bids, asks = snapshot_py.bids,snapshot_py.asks
+    #a = [apply_fast(x) for x in updates_python]
+    for x in updates_python:
+        #apply_fast(x)
+
+        side, price, quant = x
+        side = asks if side == 1 else bids
+
+        if quant == 0:
+            side.pop(price)
+        else:
+            side[price] = quant
+
+    #for i in range(1, count_of_each_side + 1):
+    #    snapshot_py.apply_fast(['sell', i + count_of_each_side, i])
+    #    snapshot_py.apply_fast(['buy', i, i])
+    
+    time_py_end = time.time()
+    time_py = time_py_end - time_py_start
+    time_py_to_cpp_ratio = time_py / time_cpp
+    print(time_py)
+    assert time_py_to_cpp_ratio > 5
+
 def test_cpp_apply_is_faster_than_py_apply_individual(save_messages):
     count_of_each_side = 100000
 

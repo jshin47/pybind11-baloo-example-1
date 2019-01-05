@@ -20,13 +20,15 @@ class PythonBasedOrderBookSnapshot:
         else:
             which_map[delta.price] = delta.quantity
 
-    def apply_fast(self, delta):
-        change = delta
-        side = self.asks if change[0] == 'sell' else self.bids
-        if change[2] == 0:
-            side.pop(change[1])
+    def apply_fast(self, change):
+        
+        side, price, quant = change
+        side = self.asks if side == 1 else self.bids
+
+        if quant == 0:
+            side.pop(price)
         else:
-            side[change[1]] = change[2]
+            side[price] = quant
     # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
     # TODO: Add another implementation of this so that we can verify that it does what we think it does.
     def calculate_bid_ask_differential_bins(self, bins):
