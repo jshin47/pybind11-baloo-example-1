@@ -67,7 +67,7 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin) {
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
     if (updates.size() < 1) {
         throw "At least one delta must be provided.";
     }
@@ -78,7 +78,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
         throw "At least one bin must be defined. (N points defines N - 1 bins.)";
     }
     
-    std::vector<std::vector<double>>& buckets_list = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+    std::vector<std::vector<double>>& bucketsList = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
 
     std::vector<OrderBookUpdate>::iterator updateIterator = updates.begin();
     
@@ -111,7 +111,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
         }
     }
 
-    if (updateIterator == updates.end()) return buckets_list;
+    if (updateIterator == updates.end()) return bucketsList;
 
     for (std::vector<double>::iterator leftBucketIterator = timeBuckets.begin(); leftBucketIterator != timeBuckets.end() - 1; ++leftBucketIterator) {
         double leftBucketValue = *leftBucketIterator;
@@ -149,10 +149,39 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
                 }
             }
         }
-        buckets_list[leftBucketIterator - timeBuckets.begin()] = calculateBidAskDifferentialBins(bins);
+        auto bucketsListItem = calculateBidAskDifferentialBins(bins);
+
+        if (calculateBidAskSpreadFeatures) {
+            double bestAskPrice, bestAskQuantity, bestBidPrice, bestBidQuantity, bidAskSpread;
+            if (asks.empty()) {
+                bestAskPrice = 0;
+                bestAskQuantity = 0;
+            } else {
+                auto bestAsk = asks.begin();
+                bestAskPrice = bestAsk->first;
+                bestAskQuantity = bestAsk->second;
+            }
+            if (bids.empty()) {
+                bestBidPrice = 0;
+                bestBidQuantity = 0;
+            } else {
+                auto bestBid = --(bids.end());
+                bestBidPrice = bestBid->first;
+                bestBidQuantity = bestBid->second;
+            }
+            if (asks.empty() || bids.empty()) {
+                bidAskSpread = 0;
+            } else {
+                bidAskSpread = bestAskPrice - bestBidPrice;
+            }
+            
+            bucketsListItem.insert(bucketsListItem.end(), { bidAskSpread, bestAskQuantity, bestBidQuantity });
+        }
+
+        bucketsList[leftBucketIterator - timeBuckets.begin()] = bucketsListItem;        
     }
     
-    return buckets_list;
+    return bucketsList;
 }
 
 OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
