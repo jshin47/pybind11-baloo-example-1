@@ -152,7 +152,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
         auto bucketsListItem = calculateBidAskDifferentialBins(bins);
 
         if (calculateBidAskSpreadFeatures) {
-            double bestAskPrice, bestAskQuantity, bestBidPrice, bestBidQuantity, bidAskSpread;
+            double bestAskPrice, bestAskQuantity, bestBidPrice, bestBidQuantity, bidAskSpread, midPrice;
             if (asks.empty()) {
                 bestAskPrice = 0;
                 bestAskQuantity = 0;
@@ -175,7 +175,8 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
                 bidAskSpread = bestAskPrice - bestBidPrice;
             }
             
-            bucketsListItem.insert(bucketsListItem.end(), { bidAskSpread, bestAskQuantity, bestBidQuantity });
+            //bucketsListItem.insert(bucketsListItem.end(), { bidAskSpread, bestAskQuantity, bestBidQuantity });
+            bucketsListItem.insert(bucketsListItem.end(), { bestBidPrice, bestAskPrice, bestAskQuantity, bestBidQuantity });
         }
 
         bucketsList[leftBucketIterator - timeBuckets.begin()] = bucketsListItem;        
