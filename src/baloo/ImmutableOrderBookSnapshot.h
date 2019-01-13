@@ -11,12 +11,16 @@
 
 class ImmutableOrderBookSnapshot : public AbsOrderBookSnapshot {
 public:
+    double getTimestamp();
+
     std::map<double, double>& getAsks();
     std::map<double, double>& getBids();
 
     ImmutableOrderBookSnapshot() {}
 
-    ImmutableOrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids) {
+    ImmutableOrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids, double timestamp = 0) {
+        this->timestamp = timestamp;
+        
         this->asks = *new std::map<double, double>(asks);
         this->bids = *new std::map<double, double>(bids);
     }
@@ -25,6 +29,8 @@ public:
 
     static ImmutableOrderBookSnapshot getEmptySnapshot() { return emptySnapshot; }
 private:
+    double timestamp;
+
     std::map<double, double> asks;
     std::map<double, double> bids;
 };

@@ -97,8 +97,9 @@ class BalooModuleTests(unittest.TestCase):
 
         time_snapshot_applied = time.time()
 
-        # print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
-        # print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+        print(f"30000 dup deltas allocated: {time_deltas_allocated - time_start}")
+        print(f"30000 dup deltas applied: {time_snapshot_applied - time_deltas_allocated}")
+
 
     # def test_binning_performance(self):
     #     return
@@ -126,7 +127,7 @@ class BalooModuleTests(unittest.TestCase):
         x = np.zeros((n,100))
         factors = [1, 2, 3]
         modes = [1]
-        sizes = [100, 150, 200, 250, 300, 350]
+        sizes = [100, 200, 300]
         should_saves = [True, False]
         for should_save in should_saves:
             for mode in modes:
@@ -146,7 +147,7 @@ class BalooModuleTests(unittest.TestCase):
                         time_binned = datetime.datetime.now()
                         print(f"Mode {mode} - It took {(time_binned - time_initialized).microseconds} μs to bin {len(deltas)} objects in to {len(bins) - 1} bins over {n} snapshots")
 
-    def test_bin_raw(self):
+    def atest_bin_raw(self):
         n=100
         x = np.zeros((n,100))
         factors = [1, 2, 3]

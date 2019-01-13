@@ -20,6 +20,15 @@ class PythonBasedOrderBookSnapshot:
         else:
             which_map[delta.price] = delta.quantity
 
+    def apply_fast(self, change):
+        
+        side, price, quant = change
+        side = self.asks if side == 1 else self.bids
+
+        if quant == 0:
+            side.pop(price)
+        else:
+            side[price] = quant
     # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
     # TODO: Add another implementation of this so that we can verify that it does what we think it does.
     def calculate_bid_ask_differential_bins(self, bins):
@@ -43,7 +52,7 @@ class PythonBasedOrderBookSnapshot:
 
     # Terribly inefficient, but just wanted to make sure it was very clear what this is doing - and use a different algorithm from the cpp implementation.
     # TODO: Add another implementation of this so that we can verify that it does what we think it does.
-    def apply_and_bucket(self, deltas, time_buckets, bins, ignore_deltas_before_beginning_of_first_bin = True):
+    def apply_and_bucket(self, deltas, time_buckets, bins, ignore_deltas_before_beginning_of_first_bin = True, calculate_bid_ask_spread_features = True):
         if ignore_deltas_before_beginning_of_first_bin == False:
             deltas_before_first_bin = list(filter(lambda delta: delta.timestamp < time_buckets[0], deltas))
             for delta in deltas_before_first_bin:
@@ -59,6 +68,16 @@ class PythonBasedOrderBookSnapshot:
             for delta in deltas_for_time_pt:
                 self.apply(delta)
             output_for_time_pt = self.calculate_bid_ask_differential_bins(bins)
+            if (calculate_bid_ask_spread_features):
+                best_ask_price = min(self.asks, key=float) if (len(self.asks) > 0) else None
+                best_ask_quantity = self.asks[best_ask_price] if (len(self.asks) > 0) else 0
+                best_bid_price = max(self.bids, key=float) if (len(self.bids) > 0) else None
+                best_bid_quantity = self.bids[best_bid_price] if (len(self.bids) > 0) else 0
+                bid_ask_spread = best_ask_price - best_bid_price if (best_ask_price is not None and best_bid_price is not None) else 0
+                output_for_time_pt.append(bid_ask_spread)
+                output_for_time_pt.append(best_ask_quantity)
+                output_for_time_pt.append(best_bid_quantity)
+
             output.append(output_for_time_pt)
 
         return output

@@ -26,8 +26,11 @@ PYBIND11_MODULE(baloo, m) {
     ;
 
     py::class_<ImmutableOrderBookSnapshot>(m, "ImmutableOrderBookSnapshot")
+        .def(py::init<>())
+        .def(py::init<std::map<double, double>&, std::map<double, double>&, double>(), py::arg("asks"), py::arg("bids"), py::arg("timestamp") = 0)
         .def_property_readonly("asks", &ImmutableOrderBookSnapshot::getAsks)
         .def_property_readonly("bids", &ImmutableOrderBookSnapshot::getBids)
+        .def_property_readonly("timestamp", &ImmutableOrderBookSnapshot::getTimestamp)
     ;
 
     py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot")
@@ -41,7 +44,7 @@ PYBIND11_MODULE(baloo, m) {
         .def("apply", (void (OrderBookSnapshot::*)(std::map<double, double>&, std::map<double, double>&)) &OrderBookSnapshot::apply, "Rewrites snapshot with new asks and bids")
         .def("get_snapshot_at_point_in_time", &OrderBookSnapshot::getSnapshotAtPointInTime, py::return_value_policy::take_ownership, "Gets a new snapshot at a point in time")
         .def("calculate_bid_ask_differential_bins", &OrderBookSnapshot::calculateBidAskDifferentialBins, py::return_value_policy::take_ownership, py::arg("bins"), py::arg("mode") = 1, "Calculates the bid-ask spread by bins")
-        .def("apply_and_bucket", &OrderBookSnapshot::applyAndBucket, py::return_value_policy::take_ownership, py::arg("deltas"), py::arg("time_buckets"), py::arg("bins"), py::arg("ignore_deltas_before_beginning_of_first_bin") = true, "Calculates the bid-ask spread over time buckets")
+        .def("apply_and_bucket", &OrderBookSnapshot::applyAndBucket, py::return_value_policy::take_ownership, py::arg("updates"), py::arg("time_buckets"), py::arg("bins"), py::arg("ignore_deltas_before_beginning_of_first_bin") = true, py::arg("calculate_bid_ask_spread_features") = true, "Calculates the bid-ask spread over time buckets")
         .def_property_readonly("asks", &OrderBookSnapshot::getAsks)
         .def_property_readonly("bids", &OrderBookSnapshot::getBids)
     ;

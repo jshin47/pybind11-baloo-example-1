@@ -1,8 +1,17 @@
 language: python
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-8
+      - g++-8
 python:
   - "3.5"
   - "3.6"
 install:
+  - export CC=gcc-8
+  - export CXX=g++-8
   - pip3 install -r requirements.txt
   - python3 setup.py install
 script:

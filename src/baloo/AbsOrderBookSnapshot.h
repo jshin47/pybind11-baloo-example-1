@@ -16,6 +16,7 @@ public:
     virtual std::map<double, double>& getAsks() = 0;
     virtual std::map<double, double>& getBids() = 0;
 protected:
+    bool applyBinValueForPriceMapIterator(std::vector<double>& bins, std::vector<double>& binsValues, OrderDirection::OrderDirectionEnum direction, std::pair<double, double> elem);
     void calculateDifferentialsForBin(std::vector<double>& bins, std::vector<double>& binsValues, std::map<double, double>& priceMap, OrderDirection::OrderDirectionEnum direction);
     std::vector<double> binsValues;
 };
