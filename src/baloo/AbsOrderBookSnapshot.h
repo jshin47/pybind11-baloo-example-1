@@ -11,7 +11,7 @@
 
 class AbsOrderBookSnapshot {
 public:
-    std::vector<double>& calculateBidAskDifferentialBins(std::vector<double>& bins, unsigned int mode = 1);
+    std::vector<double>* calculateBidAskDifferentialBins(std::vector<double>& bins, unsigned int mode = 1);
 
     virtual std::map<double, double>& getAsks() = 0;
     virtual std::map<double, double>& getBids() = 0;

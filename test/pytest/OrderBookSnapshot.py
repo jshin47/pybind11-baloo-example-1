@@ -1,5 +1,7 @@
 import datetime
 import time
+import os
+import psutil
 from operator import eq
 
 from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot, ImmutableOrderBookSnapshot
@@ -398,15 +400,17 @@ def dtest_can_apply_with_snapshots_and_deltas(save_messages):
     print(timebucket_bins_cpp)
     
 def test_memory_leak_orderbook(save_messages):
-
+    process = psutil.Process(os.getpid())
     t1 = time.time()
+    mem_after_snapshot = 0
+    mem_after_apply = 0
     for j in range(1000):
         num_deltas = 1000
         bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) 
                          for i in range(1, num_deltas + 1)]
         asks_to_apply = [OrderBookDelta(timestamp = num_deltas + i, price = i + num_deltas, quantity = i,
                                         direction = OrderDirection.Ask) for i in range(1, num_deltas + 1)]
-
+        
         first_time = bids_to_apply[0].timestamp
         last_time = asks_to_apply[-1].timestamp
         time_bins = list(range(0,2000, 10))
@@ -415,9 +419,17 @@ def test_memory_leak_orderbook(save_messages):
 
         bids = {i:i for i in range(1000)}
         asks = {i:i for i in range(1001, 4000)}
+        mem_before_snapshot = process.memory_info().rss
         a = OrderBookSnapshot(bids = bids, asks = asks)
-
+        mem_delta = process.memory_info().rss - mem_before_snapshot
+        mem_after_snapshot += mem_delta
+        mem_before_apply = process.memory_info().rss
         f =a.apply_and_bucket(to_apply, time_bins, abs_bins)
+        mem_delta = process.memory_info().rss - mem_before_apply
+        print(mem_delta)
+        mem_after_apply += mem_delta
     print(time.time() - t1)
+    
+    print()  # in bytes 
 
     return 

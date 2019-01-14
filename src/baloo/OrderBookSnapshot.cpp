@@ -61,13 +61,14 @@ void OrderBookSnapshot::apply(std::vector<double>& concatenatedDeltas) {
 }
 
 void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, double>& bids) {
-    this->initialSnapshot = *new ImmutableOrderBookSnapshot(asks, bids);
+    delete this->initialSnapshot;
+    this->initialSnapshot = new ImmutableOrderBookSnapshot(asks, bids);
     this->asks = asks;
     this->bids = bids;
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
+std::vector<std::vector<double>>* OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
     if (updates.size() < 1) {
         throw "At least one delta must be provided.";
     }
@@ -78,7 +79,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
         throw "At least one bin must be defined. (N points defines N - 1 bins.)";
     }
     
-    std::vector<std::vector<double>>& bucketsList = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+    std::vector<std::vector<double>>* bucketsList = new std::vector<std::vector<double>>(timeBuckets.size() - 1);
 
     std::vector<OrderBookUpdate>::iterator updateIterator = updates.begin();
     
@@ -176,25 +177,26 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
             }
             
             //bucketsListItem.insert(bucketsListItem.end(), { bidAskSpread, bestAskQuantity, bestBidQuantity });
-            bucketsListItem.insert(bucketsListItem.end(), { bestBidPrice, bestAskPrice, bestAskQuantity, bestBidQuantity });
+            bucketsListItem->insert(bucketsListItem->end(), { bestBidPrice, bestAskPrice, bestAskQuantity, bestBidQuantity });
         }
 
-        bucketsList[leftBucketIterator - timeBuckets.begin()] = bucketsListItem;        
+        auto bucketsListV = *bucketsList;
+        bucketsListV[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;        
     }
     
     return bucketsList;
 }
 
-OrderBookSnapshot& OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
+OrderBookSnapshot* OrderBookSnapshot::getSnapshotAtPointInTime(double pointInTime) {
     if (!saveMessages) {
         throw "Cannot get snapshot at point in time when saveMessages is false.";
     }
 
-    OrderBookSnapshot& snapshot = *new OrderBookSnapshot(initialSnapshot);
+    OrderBookSnapshot* snapshot = new OrderBookSnapshot(initialSnapshot);
     std::map<double,OrderBookDelta>::iterator upperIterator = deltas.upper_bound(pointInTime);
 
     for(std::map<double,OrderBookDelta>::iterator it = deltas.begin(); it != deltas.upper_bound(pointInTime); ++it) {
-        snapshot.apply(it->second);
+        snapshot->apply(it->second);
     }
 
     return snapshot;

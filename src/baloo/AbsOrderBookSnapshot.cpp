@@ -36,7 +36,7 @@ void AbsOrderBookSnapshot::calculateDifferentialsForBin(std::vector<double>& bin
     }
 }
 
-std::vector<double>& AbsOrderBookSnapshot::calculateBidAskDifferentialBins(std::vector<double>& bins, unsigned int mode) {
+std::vector<double>* AbsOrderBookSnapshot::calculateBidAskDifferentialBins(std::vector<double>& bins, unsigned int mode) {
     switch (mode) {
         case 1: {
             std::fill(binsValues.begin(), binsValues.end(), 0);
@@ -45,12 +45,12 @@ std::vector<double>& AbsOrderBookSnapshot::calculateBidAskDifferentialBins(std::
             calculateDifferentialsForBin(bins, binsValues, getAsks(), OrderDirection::Ask);
             calculateDifferentialsForBin(bins, binsValues, getBids(), OrderDirection::Bid);
             
-            return binsValues;
+            return &binsValues;
         }
         case 2: {
-            std::vector<double>& binsV = *new std::vector<double>(bins.size() - 1, 0);
-            calculateDifferentialsForBin(bins, binsV, getAsks(), OrderDirection::Ask);
-            calculateDifferentialsForBin(bins, binsV, getBids(), OrderDirection::Bid);
+            std::vector<double>* binsV = new std::vector<double>(bins.size() - 1, 0);
+            calculateDifferentialsForBin(bins, *binsV, getAsks(), OrderDirection::Ask);
+            calculateDifferentialsForBin(bins, *binsV, getBids(), OrderDirection::Bid);
             return binsV;
         }
         default:

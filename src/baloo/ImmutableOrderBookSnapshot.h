@@ -18,11 +18,11 @@ public:
 
     ImmutableOrderBookSnapshot() {}
 
-    ImmutableOrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids, double timestamp = 0) {
-        this->timestamp = timestamp;
-        
-        this->asks = *new std::map<double, double>(asks);
-        this->bids = *new std::map<double, double>(bids);
+    ImmutableOrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids, double timestamp = 0)
+    : asks(asks),
+      bids(bids),
+      timestamp(timestamp)
+    {
     }
 
     static ImmutableOrderBookSnapshot emptySnapshot;
