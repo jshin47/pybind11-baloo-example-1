@@ -68,7 +68,7 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>* OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
+std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
     if (updates.size() < 1) {
         throw "At least one delta must be provided.";
     }
@@ -79,7 +79,7 @@ std::vector<std::vector<double>>* OrderBookSnapshot::applyAndBucket(std::vector<
         throw "At least one bin must be defined. (N points defines N - 1 bins.)";
     }
     
-    std::vector<std::vector<double>>* bucketsList = new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+    std::vector<std::vector<double>>& bucketsList = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
 
     std::vector<OrderBookUpdate>::iterator updateIterator = updates.begin();
     
@@ -180,11 +180,9 @@ std::vector<std::vector<double>>* OrderBookSnapshot::applyAndBucket(std::vector<
             bucketsListItem->insert(bucketsListItem->end(), { bestBidPrice, bestAskPrice, bestAskQuantity, bestBidQuantity });
         }
 
-        auto bucketsListV = *bucketsList;
-        bucketsListV[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;
+        bucketsList[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;
 
     }
-    py::print(bucketsList);
     
     return bucketsList;
 }

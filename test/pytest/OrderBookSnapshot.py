@@ -326,6 +326,8 @@ def test_apply_with_time_buckets_output_looks_correct(save_messages, time_bucket
 
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
     timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
+    print(timebucket_bins_cpp)
+    print(timebucket_bins_py)
     assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
 
 def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
