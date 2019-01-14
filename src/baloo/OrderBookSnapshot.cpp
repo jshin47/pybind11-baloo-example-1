@@ -177,7 +177,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
             }
             
             //bucketsListItem.insert(bucketsListItem.end(), { bidAskSpread, bestAskQuantity, bestBidQuantity });
-            bucketsListItem->insert(bucketsListItem->end(), { bestBidPrice, bestAskPrice, bestAskQuantity, bestBidQuantity });
+            bucketsListItem->insert(bucketsListItem->end(), { bestBidPrice, bestAskPrice, bestBidQuantity, bestAskQuantity });
         }
 
         bucketsList[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;

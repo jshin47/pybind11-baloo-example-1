@@ -326,8 +326,6 @@ def test_apply_with_time_buckets_output_looks_correct(save_messages, time_bucket
 
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
     timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
-    print(timebucket_bins_cpp)
-    print(timebucket_bins_py)
     assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
 
 def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
@@ -406,7 +404,7 @@ def test_memory_leak_orderbook(save_messages):
     t1 = time.time()
     mem_after_snapshot = 0
     mem_after_apply = 0
-    for j in range(1000):
+    for j in range(5000):
         num_deltas = 1000
         bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) 
                          for i in range(1, num_deltas + 1)]
@@ -428,10 +426,9 @@ def test_memory_leak_orderbook(save_messages):
         mem_before_apply = process.memory_info().rss
         f =a.apply_and_bucket(to_apply, time_bins, abs_bins)
         mem_delta = process.memory_info().rss - mem_before_apply
-        print(mem_delta)
+        #print(mem_delta)
         mem_after_apply += mem_delta
-    print(time.time() - t1)
     
-    print()  # in bytes 
+     # in bytes 
 
     return 
