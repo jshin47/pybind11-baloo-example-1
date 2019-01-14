@@ -420,7 +420,7 @@ def test_memory_leak_orderbook(save_messages):
         bids = {i:i for i in range(1000)}
         asks = {i:i for i in range(1001, 4000)}
         mem_before_snapshot = process.memory_info().rss
-        a = OrderBookSnapshot(bids = bids, asks = asks)
+        a = OrderBookSnapshot(bids = bids, asks = asks, save_messages = False)
         mem_delta = process.memory_info().rss - mem_before_snapshot
         mem_after_snapshot += mem_delta
         mem_before_apply = process.memory_info().rss
@@ -428,7 +428,8 @@ def test_memory_leak_orderbook(save_messages):
         mem_delta = process.memory_info().rss - mem_before_apply
         #print(mem_delta)
         mem_after_apply += mem_delta
-    
+        del bids_to_apply
+        del asks_to_apply
      # in bytes 
 
     return 
