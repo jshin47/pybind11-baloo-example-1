@@ -181,8 +181,10 @@ std::vector<std::vector<double>>* OrderBookSnapshot::applyAndBucket(std::vector<
         }
 
         auto bucketsListV = *bucketsList;
-        bucketsListV[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;        
+        bucketsListV[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;
+
     }
+    py::print(bucketsList);
     
     return bucketsList;
 }
