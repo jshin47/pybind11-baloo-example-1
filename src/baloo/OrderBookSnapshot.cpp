@@ -68,7 +68,7 @@ void OrderBookSnapshot::apply(std::map<double, double>& asks, std::map<double, d
     this->deltas.clear();
 }
 
-std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
+std::vector<std::vector<double>> OrderBookSnapshot::applyAndBucket(std::vector<OrderBookUpdate>& updates, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin, bool calculateBidAskSpreadFeatures) {
     if (updates.size() < 1) {
         throw "At least one delta must be provided.";
     }
@@ -80,7 +80,7 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
     }
     
     //std::vector<std::vector<double>>& bucketsList = * new std::vector<std::vector<double>>(timeBuckets.size() - 1);
-    std::vector<std::vector<double>>& bucketsList = *new std::vector<std::vector<double>>(timeBuckets.size() - 1);
+    std::vector<std::vector<double>> bucketsList(timeBuckets.size() - 1);
     std::vector<OrderBookUpdate>::iterator updateIterator = updates.begin();
     
     while (updateIterator != updates.end()) {
@@ -150,8 +150,8 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
                 }
             }
         }
-        auto bucketsListItem = calculateBidAskDifferentialBins(bins);
-
+        std::vector<double>* bucketsListItem = calculateBidAskDifferentialBins(bins);
+        
         if (calculateBidAskSpreadFeatures) {
             double bestAskPrice, bestAskQuantity, bestBidPrice, bestBidQuantity, bidAskSpread, midPrice;
             if (asks.empty()) {
@@ -180,10 +180,16 @@ std::vector<std::vector<double>>& OrderBookSnapshot::applyAndBucket(std::vector<
             bucketsListItem->insert(bucketsListItem->end(), { bestBidPrice, bestAskPrice, bestBidQuantity, bestAskQuantity });
         }
 
-        bucketsList[leftBucketIterator - timeBuckets.begin()] = *bucketsListItem;
-
+        std::vector<double> bucketsListItemValue = *bucketsListItem;
+        bucketsList[leftBucketIterator - timeBuckets.begin()] = bucketsListItemValue;
+        delete bucketsListItem;
+        // std::vector<double>& v = bucketsList[leftBucketIterator - timeBuckets.begin()];
+        // py::print(v[0]);
+        // py::print(v[1]);
+        // py::print(v[2]);
+        // py::print(v[3]);
     }
-    
+
     return bucketsList;
 }
 
