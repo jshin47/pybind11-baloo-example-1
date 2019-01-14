@@ -363,7 +363,7 @@ def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
 
     assert time_applied_bucketed_cpp < count_of_each_side * 0.00001
 
-def test_can_apply_with_snapshots_and_deltas(save_messages):
+def dtest_can_apply_with_snapshots_and_deltas(save_messages):
     count_of_each_side = 100
     time_buckets_count = 20
     bin_factor = 0.15
@@ -397,3 +397,27 @@ def test_can_apply_with_snapshots_and_deltas(save_messages):
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(updates_to_apply, time_buckets, bins)
     print(timebucket_bins_cpp)
     
+def test_memory_leak_orderbook(save_messages):
+
+    t1 = time.time()
+    for j in range(1000):
+        num_deltas = 1000
+        bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) 
+                         for i in range(1, num_deltas + 1)]
+        asks_to_apply = [OrderBookDelta(timestamp = num_deltas + i, price = i + num_deltas, quantity = i,
+                                        direction = OrderDirection.Ask) for i in range(1, num_deltas + 1)]
+
+        first_time = bids_to_apply[0].timestamp
+        last_time = asks_to_apply[-1].timestamp
+        time_bins = list(range(0,2000, 10))
+        abs_bins = list(range(500,1500, 100))
+        to_apply = bids_to_apply + asks_to_apply
+
+        bids = {i:i for i in range(1000)}
+        asks = {i:i for i in range(1001, 4000)}
+        a = OrderBookSnapshot(bids = bids, asks = asks)
+
+        f =a.apply_and_bucket(to_apply, time_bins, abs_bins)
+    print(time.time() - t1)
+
+    return 
