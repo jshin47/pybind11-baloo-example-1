@@ -365,7 +365,7 @@ def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
 
     assert time_applied_bucketed_cpp < count_of_each_side * 0.00001
 
-def dtest_can_apply_with_snapshots_and_deltas(save_messages):
+def test_can_apply_with_snapshots_and_deltas(save_messages):
     count_of_each_side = 100
     time_buckets_count = 20
     bin_factor = 0.15

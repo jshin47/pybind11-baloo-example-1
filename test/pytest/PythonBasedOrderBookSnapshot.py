@@ -69,14 +69,15 @@ class PythonBasedOrderBookSnapshot:
                 self.apply(delta)
             output_for_time_pt = self.calculate_bid_ask_differential_bins(bins)
             if (calculate_bid_ask_spread_features):
-                best_ask_price = min(self.asks, key=float) if (len(self.asks) > 0) else None
+                best_ask_price = min(self.asks, key=float) if (len(self.asks) > 0) else 0
                 best_ask_quantity = self.asks[best_ask_price] if (len(self.asks) > 0) else 0
-                best_bid_price = max(self.bids, key=float) if (len(self.bids) > 0) else None
+                best_bid_price = max(self.bids, key=float) if (len(self.bids) > 0) else 0
                 best_bid_quantity = self.bids[best_bid_price] if (len(self.bids) > 0) else 0
                 bid_ask_spread = best_ask_price - best_bid_price if (best_ask_price is not None and best_bid_price is not None) else 0
-                output_for_time_pt.append(bid_ask_spread)
-                output_for_time_pt.append(best_ask_quantity)
+                output_for_time_pt.append(best_bid_price)
+                output_for_time_pt.append(best_ask_price)
                 output_for_time_pt.append(best_bid_quantity)
+                output_for_time_pt.append(best_ask_quantity)
 
             output.append(output_for_time_pt)
 
