@@ -12,7 +12,7 @@ RUN apt-get -y install curl libcurl4-openssl-dev
 COPY . /usr/src/baloo
 WORKDIR /usr/src/baloo
 
-RUN pip3 install setuptools pytest
+RUN pip3 install setuptools pytest psutil
 
 RUN python3 setup.py install
 

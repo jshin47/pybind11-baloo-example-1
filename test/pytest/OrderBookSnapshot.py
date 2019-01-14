@@ -1,5 +1,8 @@
 import datetime
 import time
+import os
+import psutil
+import gc
 from operator import eq
 
 from baloo import OrderDirection, OrderBookDelta, OrderBookSnapshot, ImmutableOrderBookSnapshot
@@ -306,7 +309,12 @@ def test_binning_is_much_faster(save_messages):
     assert time_py_to_cpp_ratio > 100
 
 # TODO: Implement this in PythonBasedOrderBookSnapshot a different way and compare.
-def test_apply_with_time_buckets_output_looks_correct(save_messages, time_buckets_count, bin_factor, bin_step):
+# def test_apply_with_time_buckets_output_looks_correct(time_buckets_count, bin_factor, bin_step):
+def test_apply_with_time_buckets_output_looks_correct():
+    time_buckets_count = 50
+    bin_factor = .4
+    bin_step = 20
+    save_messages = False
     count_of_each_side = 100
     bin_left = ((int)(bin_factor * (count_of_each_side * 2 + 1)))
     bin_right = ((int)((1 - bin_factor) * (count_of_each_side * 2 + 1)))
@@ -323,7 +331,9 @@ def test_apply_with_time_buckets_output_looks_correct(save_messages, time_bucket
     time_buckets = range(2, 2*count_of_each_side+1, time_bucket_step)
 
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(to_apply, time_buckets, bins)
+    print(timebucket_bins_cpp[-1])
     timebucket_bins_py = snapshot_py.apply_and_bucket(to_apply, time_buckets, bins)
+    print(timebucket_bins_py[-1])
     assert eq(timebucket_bins_cpp, timebucket_bins_py) == True
 
 def test_apply_with_time_buckets_cpp_is_much_faster(save_messages):
@@ -397,3 +407,74 @@ def test_can_apply_with_snapshots_and_deltas(save_messages):
     timebucket_bins_cpp = snapshot_cpp.apply_and_bucket(updates_to_apply, time_buckets, bins)
     print(timebucket_bins_cpp)
     
+def test_memory_leak_orderbook(save_messages):
+    process = psutil.Process(os.getpid())
+    t1 = time.time()
+    mem_after_snapshot = 0
+    mem_after_apply = 0
+    for j in range(5000):
+        num_deltas = 1000
+        bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) 
+                         for i in range(1, num_deltas + 1)]
+        asks_to_apply = [OrderBookDelta(timestamp = num_deltas + i, price = i + num_deltas, quantity = i,
+                                        direction = OrderDirection.Ask) for i in range(1, num_deltas + 1)]
+        
+        first_time = bids_to_apply[0].timestamp
+        last_time = asks_to_apply[-1].timestamp
+        time_bins = list(range(0,2000, 10))
+        abs_bins = list(range(500,1500, 100))
+        to_apply = bids_to_apply + asks_to_apply
+
+        bids = {i:i for i in range(1000)}
+        asks = {i:i for i in range(1001, 4000)}
+        mem_before_snapshot = process.memory_info().rss
+        bids={1:1}
+        asks={2:2}
+        a = OrderBookSnapshot(bids = bids, asks = asks, save_messages = False)
+        mem_delta = process.memory_info().rss - mem_before_snapshot
+        mem_after_snapshot += mem_delta
+        mem_before_apply = process.memory_info().rss
+        f =a.apply_and_bucket(to_apply, time_bins, abs_bins)
+        print(f[-1])
+        #del f
+        #del a
+        #gc.collect()
+        mem_delta = process.memory_info().rss - mem_before_apply
+        #print(mem_delta)
+        mem_after_apply += mem_delta
+        print(f)
+     # in bytes 
+
+    return 
+
+def test_memory_leak_orderbook_2(save_messages):
+    process = psutil.Process(os.getpid())
+    t1 = time.time()
+    mem_after_snapshot = 0
+    mem_after_apply = 0
+    for j in range(5000):
+        num_deltas = 1000
+        bids_to_apply = [OrderBookDelta(timestamp = i, price = i, quantity = i, direction = OrderDirection.Bid) 
+                         for i in range(1, num_deltas + 1)]
+        asks_to_apply = [OrderBookDelta(timestamp = num_deltas + i, price = i + num_deltas, quantity = i,
+                                        direction = OrderDirection.Ask) for i in range(1, num_deltas + 1)]
+        
+        first_time = bids_to_apply[0].timestamp
+        last_time = asks_to_apply[-1].timestamp
+        time_bins = list(range(0,2000, 10))
+        abs_bins = list(range(500,1500, 100))
+        to_apply = bids_to_apply + asks_to_apply
+
+        bids = {i:i for i in range(1000)}
+        asks = {i:i for i in range(1001, 4000)}
+        mem_before_snapshot = process.memory_info().rss
+        a = OrderBookSnapshot(bids = bids, asks = asks, save_messages = False)
+        mem_delta = process.memory_info().rss - mem_before_snapshot
+        mem_after_snapshot += mem_delta
+        mem_before_apply = process.memory_info().rss
+        f =a.apply(to_apply)
+        mem_delta = process.memory_info().rss - mem_before_apply
+        #print(mem_delta)
+        print(f)
+        mem_after_apply += mem_delta
+     # in bytes 

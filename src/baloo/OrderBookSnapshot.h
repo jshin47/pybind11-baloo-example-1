@@ -25,31 +25,38 @@ public:
     void apply(std::vector<std::tuple<double, double, double, OrderDirection::OrderDirectionEnum>>& deltas);
     void apply(std::vector<double>& concatenatedDeltas);
     void apply(std::map<double, double>& asks, std::map<double, double>& bids);
-    std::vector<std::vector<double>>& applyAndBucket(std::vector<OrderBookUpdate>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin = true, bool calculateBidAskSpreadFeatures = true);
-    OrderBookSnapshot& getSnapshotAtPointInTime(double pointInTime);
+    std::vector<std::vector<double>> applyAndBucket(std::vector<OrderBookUpdate>& deltas, std::vector<double>& timeBuckets, std::vector<double>& bins, bool ignoreDeltasBeforeBeginningOfFirstBin = true, bool calculateBidAskSpreadFeatures = true);
+    OrderBookSnapshot* getSnapshotAtPointInTime(double pointInTime);
 
     std::map<double, OrderBookDelta>& getDeltas();
     std::map<double, double>& getAsks();
     std::map<double, double>& getBids();
 
-    OrderBookSnapshot(bool saveMessages = true) {
+    OrderBookSnapshot(bool saveMessages = true)
+    : saveMessages(saveMessages),
+      initialSnapshot(new ImmutableOrderBookSnapshot()) {
         this->saveMessages = saveMessages;
     }
 
-    OrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids, bool saveMessages = true) {
-        this->initialSnapshot = *new ImmutableOrderBookSnapshot(asks, bids);
-        this->asks = asks;
-        this->bids = bids;
-        this->saveMessages = saveMessages;
+    OrderBookSnapshot(std::map<double, double>& asks, std::map<double, double>& bids, bool saveMessages = true)
+    : asks(asks),
+      bids(bids),
+      initialSnapshot(new ImmutableOrderBookSnapshot(asks, bids)),
+      saveMessages(saveMessages)
+    {
     }
 
     OrderBookSnapshot(AbsOrderBookSnapshot& initialSnapshot) : OrderBookSnapshot(initialSnapshot.getAsks(), initialSnapshot.getBids()) {}
+
+    ~OrderBookSnapshot() {
+        delete initialSnapshot;
+    }
 private:
     bool saveMessages;
     std::map<double, OrderBookDelta> deltas;
     std::map<double, double> asks;
     std::map<double, double> bids;
-    ImmutableOrderBookSnapshot initialSnapshot = *new ImmutableOrderBookSnapshot();
+    ImmutableOrderBookSnapshot* initialSnapshot;
 };
 
 #endif
